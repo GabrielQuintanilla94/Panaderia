@@ -1,0 +1,35 @@
+
+================================
+       PANADER?A ROSARIO
+================================
+1. Gesti?n de productos
+2. Registrar pedido
+3. Consultar pedidos
+4. Actualizar estado de pedido
+5. Reportes
+6. Salir
+Seleccione una opci?n: ==============================
+REPORTE PANADER?A ROSARIO
+==============================
+Productos registrados: 6
+Productos disponibles: 6
+Pedidos registrados: 0
+Recibidos: 0
+En preparaci?n: 0
+En camino: 0
+Entregados: 0
+Ventas acumuladas entregadas: $0.00
+Producto m?s vendido: Sin datos todav?a
+==============================
+
+
+================================
+       PANADER?A ROSARIO
+================================
+1. Gesti?n de productos
+2. Registrar pedido
+3. Consultar pedidos
+4. Actualizar estado de pedido
+5. Reportes
+6. Salir
+Seleccione una opci?n: Programa finalizado.
