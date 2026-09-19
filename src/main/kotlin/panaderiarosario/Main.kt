@@ -220,7 +220,7 @@ private inline fun ejecutarSeguro(bloque: () -> Unit) {
         bloque()
     } catch (e: Exception) {
         val mensaje = e.message ?: "Error desconocido"
-        Logger.registrarError(mensaje)
+        Logger.registrarError(mensaje, e)
         println("Error: $mensaje")
     }
 }
