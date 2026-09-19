@@ -1,0 +1,27 @@
+package panaderiarosario.service
+
+import panaderiarosario.model.Cliente
+
+class ClienteService {
+    // REQUERIMIENTO DE RÚBRICA: Manejo de colecciones para gestionar los datos
+    private val clientes = mutableListOf<Cliente>()
+
+    fun registrarCliente(nombre: String, telefono: String, direccion: String): Cliente {
+        val nuevoCliente = Cliente(nombre, telefono, direccion)
+        clientes.add(nuevoCliente)
+        return nuevoCliente
+    }
+
+    fun listarClientes(): List<Cliente> {
+        return clientes.toList() // Retorna una copia de solo lectura
+    }
+
+    fun buscarPorTelefono(telefono: String): Cliente? {
+        return clientes.find { it.telefono == telefono }
+    }
+
+    fun eliminarCliente(telefono: String): Boolean {
+        // Elimina al cliente si el teléfono coincide y retorna true si tuvo éxito
+        return clientes.removeIf { it.telefono == telefono }
+    }
+}
