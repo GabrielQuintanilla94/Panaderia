@@ -15,6 +15,7 @@ fun main() {
     val productoService = ProductoService(DatosIniciales.productos())
     val pedidoService = PedidoService()
     val reporteService = ReporteService(productoService, pedidoService)
+    val clienteService = panaderiarosario.service.ClienteService()
 
     var continuar = true
     while (continuar) {
@@ -26,7 +27,8 @@ fun main() {
         println("3. Consultar pedidos")
         println("4. Actualizar estado de pedido")
         println("5. Reportes")
-        println("6. Salir")
+        println("6. Gestión de clientes")
+        println("7. Salir")
         print("Seleccione una opción: ")
 
         when (readlnOrNull()?.trim()) {
@@ -35,7 +37,8 @@ fun main() {
             "3" -> consultarPedidos(pedidoService)
             "4" -> actualizarEstado(pedidoService)
             "5" -> println(reporteService.generarResumen())
-            "6" -> continuar = false
+            "6" -> menuClientes(clienteService)
+            "7" -> continuar = false
             else -> println("Opción inválida.")
         }
     }
@@ -219,5 +222,52 @@ private inline fun ejecutarSeguro(bloque: () -> Unit) {
         val mensaje = e.message ?: "Error desconocido"
         Logger.registrarError(mensaje)
         println("Error: $mensaje")
+    }
+}
+
+// NUEVO MÓDULO: Gestión de Clientes
+private fun menuClientes(clienteService: panaderiarosario.service.ClienteService) {
+    var volver = false
+    while (!volver) {
+        println("\n--- GESTIÓN DE CLIENTES ---")
+        println("1. Listar clientes")
+        println("2. Registrar cliente")
+        println("3. Buscar cliente")
+        println("4. Eliminar cliente")
+        println("5. Regresar")
+        print("Opción: ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> {
+                val clientes = clienteService.listarClientes()
+                if (clientes.isEmpty()) println("No hay clientes registrados.")
+                else clientes.forEach { println("Nombre: ${it.nombre} | Tel: ${it.telefono} | Dir: ${it.direccion}") }
+            }
+            "2" -> ejecutarSeguro {
+                print("Nombre: ")
+                val nombre = panaderiarosario.util.Validador.textoNoVacio(readln(), "Nombre")
+                print("Teléfono: ")
+                val telefono = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                print("Dirección: ")
+                val direccion = panaderiarosario.util.Validador.textoNoVacio(readln(), "Dirección")
+                clienteService.registrarCliente(nombre, telefono, direccion)
+                println("✅ Cliente registrado exitosamente.")
+            }
+            "3" -> ejecutarSeguro {
+                print("Teléfono a buscar: ")
+                val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                val cliente = clienteService.buscarPorTelefono(tel)
+                if (cliente != null) println("Encontrado - Nombre: ${cliente.nombre} | Dirección: ${cliente.direccion}")
+                else println("❌ Cliente no encontrado.")
+            }
+            "4" -> ejecutarSeguro {
+                print("Teléfono a eliminar: ")
+                val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                if (clienteService.eliminarCliente(tel)) println("✅ Cliente eliminado.")
+                else println("❌ Cliente no encontrado.")
+            }
+            "5" -> volver = true
+            else -> println("Opción inválida.")
+        }
     }
 }
