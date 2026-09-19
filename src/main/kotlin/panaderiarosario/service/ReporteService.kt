@@ -1,6 +1,7 @@
 package panaderiarosario.service
 
 import panaderiarosario.model.EstadoPedido
+import java.io.File
 
 class ReporteService(
     private val productoService: ProductoService,
@@ -37,5 +38,11 @@ class ReporteService(
             }
             appendLine("==============================")
         }
+    }
+
+    fun exportarReporte(nombreArchivo: String = "reporte_ventas.txt"): String {
+        val contenido = generarResumen()
+        File(nombreArchivo).writeText(contenido)
+        return nombreArchivo
     }
 }

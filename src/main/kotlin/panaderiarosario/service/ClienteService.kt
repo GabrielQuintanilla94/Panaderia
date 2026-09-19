@@ -7,6 +7,7 @@ class ClienteService {
     private val clientes = mutableListOf<Cliente>()
 
     fun registrarCliente(nombre: String, telefono: String, direccion: String): Cliente {
+        require(buscarPorTelefono(telefono) == null) { "Ya existe un cliente registrado con el teléfono $telefono." }
         val nuevoCliente = Cliente(nombre, telefono, direccion)
         clientes.add(nuevoCliente)
         return nuevoCliente

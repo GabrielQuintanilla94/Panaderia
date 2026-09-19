@@ -5,6 +5,7 @@ import panaderiarosario.model.Categoria
 import panaderiarosario.model.Cliente
 import panaderiarosario.model.DetallePedido
 import panaderiarosario.model.EstadoPedido
+import panaderiarosario.service.ClienteService
 import panaderiarosario.service.PedidoService
 import panaderiarosario.service.ProductoService
 import panaderiarosario.service.ReporteService
@@ -33,11 +34,11 @@ fun main() {
 
         when (readlnOrNull()?.trim()) {
             "1" -> menuProductos(productoService)
-            "2" -> registrarPedido(productoService, pedidoService)
+            "2" -> registrarPedido(productoService, pedidoService, clienteService)
             "3" -> consultarPedidos(pedidoService)
             "4" -> actualizarEstado(pedidoService)
-            "5" -> println(reporteService.generarResumen())
-            "6" -> menuClientes(clienteService)
+            "5" -> menuReportes(reporteService)
+            "6" -> menuClientes(clienteService, pedidoService)
             "7" -> continuar = false
             else -> println("Opción inválida.")
         }
@@ -104,7 +105,7 @@ private fun menuProductos(productoService: ProductoService) {
     }
 }
 
-private fun registrarPedido(productoService: ProductoService, pedidoService: PedidoService) {
+private fun registrarPedido(productoService: ProductoService, pedidoService: PedidoService, clienteService: ClienteService) {
     ejecutarSeguro {
         println("\n--- REGISTRAR PEDIDO ---")
         print("Nombre del cliente: ")
@@ -113,7 +114,14 @@ private fun registrarPedido(productoService: ProductoService, pedidoService: Ped
         val telefono = Validador.textoNoVacio(readln(), "Teléfono")
         print("Dirección: ")
         val direccion = Validador.textoNoVacio(readln(), "Dirección")
-        val cliente = Cliente(nombre, telefono, direccion)
+
+        var cliente = clienteService.buscarPorTelefono(telefono)
+        if (cliente == null) {
+            cliente = clienteService.registrarCliente(nombre, telefono, direccion)
+            println("ℹ️ Nuevo cliente registrado automáticamente en el sistema.")
+        } else {
+            println("ℹ️ Cliente existente reconocido: ${cliente.nombre}")
+        }
 
         val detalles = mutableListOf<DetallePedido>()
         var agregar = true
@@ -226,7 +234,7 @@ private inline fun ejecutarSeguro(bloque: () -> Unit) {
 }
 
 // NUEVO MÓDULO: Gestión de Clientes
-private fun menuClientes(clienteService: panaderiarosario.service.ClienteService) {
+private fun menuClientes(clienteService: ClienteService, pedidoService: PedidoService) {
     var volver = false
     while (!volver) {
         println("\n--- GESTIÓN DE CLIENTES ---")
@@ -240,8 +248,16 @@ private fun menuClientes(clienteService: panaderiarosario.service.ClienteService
         when (readlnOrNull()?.trim()) {
             "1" -> {
                 val clientes = clienteService.listarClientes()
-                if (clientes.isEmpty()) println("No hay clientes registrados.")
-                else clientes.forEach { println("Nombre: ${it.nombre} | Tel: ${it.telefono} | Dir: ${it.direccion}") }
+                if (clientes.isEmpty()) {
+                    println("No hay clientes registrados.")
+                } else {
+                    println("\n--- LISTA DE CLIENTES ---")
+                    clientes.forEach { cliente ->
+                        val pedidosCliente = pedidoService.listar().filter { it.cliente.telefono == cliente.telefono }
+                        val totalGastado = pedidosCliente.sumOf { it.calcularTotal() }
+                        println("Nombre: ${cliente.nombre} | Tel: ${cliente.telefono} | Dir: ${cliente.direccion} | Pedidos: ${pedidosCliente.size} | Gastado: $${"%.2f".format(totalGastado)}")
+                    }
+                }
             }
             "2" -> ejecutarSeguro {
                 print("Nombre: ")
@@ -257,8 +273,18 @@ private fun menuClientes(clienteService: panaderiarosario.service.ClienteService
                 print("Teléfono a buscar: ")
                 val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
                 val cliente = clienteService.buscarPorTelefono(tel)
-                if (cliente != null) println("Encontrado - Nombre: ${cliente.nombre} | Dirección: ${cliente.direccion}")
-                else println("❌ Cliente no encontrado.")
+                if (cliente != null) {
+                    val pedidosCliente = pedidoService.listar().filter { it.cliente.telefono == cliente.telefono }
+                    val totalGastado = pedidosCliente.sumOf { it.calcularTotal() }
+                    println("\n--- CLIENTE ENCONTRADO ---")
+                    println("Nombre: ${cliente.nombre}")
+                    println("Teléfono: ${cliente.telefono}")
+                    println("Dirección: ${cliente.direccion}")
+                    println("Cantidad de pedidos realizados: ${pedidosCliente.size}")
+                    println("Dinero gastado en total: $${"%.2f".format(totalGastado)}")
+                } else {
+                    println("❌ Cliente no encontrado.")
+                }
             }
             "4" -> ejecutarSeguro {
                 print("Teléfono a eliminar: ")
@@ -267,6 +293,27 @@ private fun menuClientes(clienteService: panaderiarosario.service.ClienteService
                 else println("❌ Cliente no encontrado.")
             }
             "5" -> volver = true
+            else -> println("Opción inválida.")
+        }
+    }
+}
+
+private fun menuReportes(reporteService: ReporteService) {
+    var volver = false
+    while (!volver) {
+        println("\n--- GESTIÓN DE REPORTES ---")
+        println("1. Ver resumen en pantalla")
+        println("2. Exportar reporte a archivo de texto")
+        println("3. Regresar")
+        print("Opción: ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> println(reporteService.generarResumen())
+            "2" -> ejecutarSeguro {
+                val archivo = reporteService.exportarReporte()
+                println("✅ Reporte exportado exitosamente en el archivo: $archivo")
+            }
+            "3" -> volver = true
             else -> println("Opción inválida.")
         }
     }
