@@ -181,7 +181,8 @@ private fun menuProductos(productoService: ProductoService) {
         println("3. Actualizar producto")
         println("4. Cambiar disponibilidad")
         println("5. Eliminar producto")
-        println("6. Regresar")
+        println("6. Buscar por categoría") // Nueva opción agregada
+        println("7. Regresar")
         print("Opción: ")
 
         when (readlnOrNull()?.trim()) {
@@ -224,7 +225,13 @@ private fun menuProductos(productoService: ProductoService) {
                 if (productoService.eliminar(id)) println("Producto eliminado.")
                 else println("Producto no encontrado.")
             }
-            "6" -> volver = true
+            "6" -> ejecutarSeguro { // Lógica para buscar por categoría
+                val categoria = leerCategoria()
+                val filtrados = productoService.buscarPorCategoria(categoria)
+                if (filtrados.isEmpty()) println("No se encontraron productos en esa categoría.")
+                else mostrarProductos(filtrados)
+            }
+            "7" -> volver = true
             else -> println("Opción inválida.")
         }
     }
@@ -257,7 +264,11 @@ private fun registrarPedidoAdmin(productoService: ProductoService, pedidoService
             val id = Validador.enteroPositivo(readln(), "ID")
             val producto = productoService.buscarPorId(id)
                 ?: throw IllegalArgumentException("Producto no encontrado.")
-            if (!producto.disponible) throw IllegalArgumentException("El producto no está disponible.")
+
+            // 1. REQUERIMIENTO: Uso de excepción personalizada
+            if (!producto.disponible) {
+                throw panaderiarosario.exception.ProductoNoDisponibleException("El producto '${producto.nombre}' actualmente se encuentra agotado o inactivo.")
+            }
 
             print("Cantidad: ")
             val cantidad = Validador.enteroPositivo(readln(), "Cantidad")
