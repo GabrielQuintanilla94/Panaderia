@@ -1,9 +1,9 @@
 # Universidad Don Bosco Dirección de Educación a Distancia
-# Proyecto de Cátedra Etapa 2: Desarrollo del Proyecto
-# Estudiantes
-## Christian Geovanni Centeno, CS241743   
-## José Alexander Montoya, MQ252529
-## Félix Gabriel Quintanilla, QR230082
+## Proyecto de Cátedra Etapa 2: Desarrollo del Proyecto
+## Estudiantes:
+`Christian Geovanni Centeno, CS241743`   
+`José Alexander Montoya, MQ252529`
+`Félix Gabriel Quintanilla, QR230082`
 
 # Panadería Rosario - Desarrollo Técnico
 
