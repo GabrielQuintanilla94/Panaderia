@@ -3,6 +3,7 @@
 ## Estudiantes:
 `Christian Geovanni Centeno, CS241743`   
 `José Alexander Montoya, MQ252529`
+
 `Félix Gabriel Quintanilla, QR230082`
 
 # Panadería Rosario - Desarrollo Técnico
