@@ -378,7 +378,7 @@ private fun menuClientes(clienteService: ClienteService, pedidoService: PedidoSe
 
         when (readlnOrNull()?.trim()) {
             "1" -> {
-                val clientes = clienteService.listarClientes()
+                val clientes = clienteService.listar()
                 if (clientes.isEmpty()) {
                     println("No hay clientes registrados.")
                 } else {
@@ -420,7 +420,7 @@ private fun menuClientes(clienteService: ClienteService, pedidoService: PedidoSe
             "4" -> ejecutarSeguro {
                 print("Teléfono a eliminar: ")
                 val tel = Validador.textoNoVacio(readln(), "Teléfono")
-                if (clienteService.eliminarCliente(tel)) println("✅ Cliente eliminado.")
+                if (clienteService.eliminar(tel)) println("✅ Cliente eliminado.")
                 else println("❌ Cliente no encontrado.")
             }
             "5" -> volver = true
