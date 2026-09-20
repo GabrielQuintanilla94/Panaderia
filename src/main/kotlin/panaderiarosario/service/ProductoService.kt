@@ -5,12 +5,18 @@ import panaderiarosario.model.Producto
 
 class ProductoService(
     private val productos: MutableList<Producto>
-) {
-    fun listar(): List<Producto> = productos.toList()
+) : MantenimientoBase<Producto, Int> {
+
+    override fun listar(): List<Producto> = productos.toList()
 
     fun disponibles(): List<Producto> = productos.filter { it.disponible }
 
     fun buscarPorId(id: Int): Producto? = productos.find { it.id == id }
+
+    // Nueva función para terminar la gestión de productos
+    fun buscarPorCategoria(categoriaBuscada: Categoria): List<Producto> {
+        return productos.filter { it.categoria == categoriaBuscada }
+    }
 
     fun crear(nombre: String, categoria: Categoria, precio: Double): Producto {
         val nuevoId = (productos.maxOfOrNull { it.id } ?: 0) + 1
@@ -33,5 +39,5 @@ class ProductoService(
         return true
     }
 
-    fun eliminar(id: Int): Boolean = productos.removeIf { it.id == id }
+    override fun eliminar(id: Int): Boolean = productos.removeIf { it.id == id }
 }
