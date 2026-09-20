@@ -55,7 +55,8 @@ private fun menuProductos(productoService: ProductoService) {
         println("3. Actualizar producto")
         println("4. Cambiar disponibilidad")
         println("5. Eliminar producto")
-        println("6. Regresar")
+        println("6. Buscar por categoría") // Nueva opción agregada
+        println("7. Regresar")
         print("Opción: ")
 
         when (readlnOrNull()?.trim()) {
@@ -98,7 +99,13 @@ private fun menuProductos(productoService: ProductoService) {
                 if (productoService.eliminar(id)) println("Producto eliminado.")
                 else println("Producto no encontrado.")
             }
-            "6" -> volver = true
+            "6" -> ejecutarSeguro { // Lógica para buscar por categoría
+                val categoria = leerCategoria()
+                val filtrados = productoService.buscarPorCategoria(categoria)
+                if (filtrados.isEmpty()) println("No se encontraron productos en esa categoría.")
+                else mostrarProductos(filtrados)
+            }
+            "7" -> volver = true
             else -> println("Opción inválida.")
         }
     }
@@ -124,7 +131,11 @@ private fun registrarPedido(productoService: ProductoService, pedidoService: Ped
             val id = Validador.enteroPositivo(readln(), "ID")
             val producto = productoService.buscarPorId(id)
                 ?: throw IllegalArgumentException("Producto no encontrado.")
-            if (!producto.disponible) throw IllegalArgumentException("El producto no está disponible.")
+
+            // 1. REQUERIMIENTO: Uso de excepción personalizada
+            if (!producto.disponible) {
+                throw panaderiarosario.exception.ProductoNoDisponibleException("El producto '${producto.nombre}' actualmente se encuentra agotado o inactivo.")
+            }
 
             print("Cantidad: ")
             val cantidad = Validador.enteroPositivo(readln(), "Cantidad")
@@ -141,7 +152,26 @@ private fun registrarPedido(productoService: ProductoService, pedidoService: Ped
         pedido.detalles.forEach {
             println("- ${it.producto.nombre} x${it.cantidad}: $${"%.2f".format(it.calcularSubtotal())}")
         }
-        println("Total: $${"%.2f".format(pedido.calcularTotal())}")
+
+        // 2. REQUERIMIENTO: Cálculos matemáticos y reglas de negocio
+        val subtotal = pedido.calcularTotal()
+        val iva = subtotal * 0.13 // 13% de IVA estándar
+        var descuento = 0.0
+
+        if (subtotal >= 20.0) {
+            descuento = subtotal * 0.10 // 10% de descuento en compras fuertes
+        }
+
+        val totalFinal = subtotal + iva - descuento
+
+        println("--------------------------------")
+        println("Subtotal:  $${"%.2f".format(subtotal)}")
+        println("IVA (13%): $${"%.2f".format(iva)}")
+        if (descuento > 0) {
+            println("Descuento (10%): -$${"%.2f".format(descuento)}")
+        }
+        println("TOTAL A PAGAR: $${"%.2f".format(totalFinal)}")
+        println("--------------------------------")
 
         val subtotalPan = pedido.totalCategoria(Categoria.PAN)
         if (subtotalPan in 0.01..<2.00) {
@@ -225,7 +255,7 @@ private inline fun ejecutarSeguro(bloque: () -> Unit) {
     }
 }
 
-// NUEVO MÓDULO: Gestión de Clientes
+// MÓDULO ACTUALIZADO: Gestión de Clientes
 private fun menuClientes(clienteService: panaderiarosario.service.ClienteService) {
     var volver = false
     while (!volver) {
@@ -239,7 +269,8 @@ private fun menuClientes(clienteService: panaderiarosario.service.ClienteService
 
         when (readlnOrNull()?.trim()) {
             "1" -> {
-                val clientes = clienteService.listarClientes()
+                // Actualizado para usar la función de la interface
+                val clientes = clienteService.listar()
                 if (clientes.isEmpty()) println("No hay clientes registrados.")
                 else clientes.forEach { println("Nombre: ${it.nombre} | Tel: ${it.telefono} | Dir: ${it.direccion}") }
             }
@@ -263,7 +294,8 @@ private fun menuClientes(clienteService: panaderiarosario.service.ClienteService
             "4" -> ejecutarSeguro {
                 print("Teléfono a eliminar: ")
                 val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
-                if (clienteService.eliminarCliente(tel)) println("✅ Cliente eliminado.")
+                // Actualizado para usar la función de la interface
+                if (clienteService.eliminar(tel)) println("✅ Cliente eliminado.")
                 else println("❌ Cliente no encontrado.")
             }
             "5" -> volver = true
