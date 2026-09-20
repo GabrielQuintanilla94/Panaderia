@@ -5,6 +5,7 @@ import panaderiarosario.model.Categoria
 import panaderiarosario.model.Cliente
 import panaderiarosario.model.DetallePedido
 import panaderiarosario.model.EstadoPedido
+import panaderiarosario.model.Producto
 import panaderiarosario.service.ClienteService
 import panaderiarosario.service.PedidoService
 import panaderiarosario.service.ProductoService
@@ -16,12 +17,67 @@ fun main() {
     val productoService = ProductoService(DatosIniciales.productos())
     val pedidoService = PedidoService()
     val reporteService = ReporteService(productoService, pedidoService)
-    val clienteService = panaderiarosario.service.ClienteService()
+    val clienteService = ClienteService()
 
+    var salirApp = false
+    while (!salirApp) {
+        println("\n================================")
+        println("       PANADERÍA ROSARIO")
+        println("================================")
+        println("1. Iniciar sesión como Administrador")
+        println("2. Iniciar sesión como Cliente")
+        println("3. Salir")
+        print("Seleccione una opción: ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> {
+                print("Usuario: ")
+                val user = readln().trim()
+                print("Contraseña: ")
+                val pass = readln().trim()
+                if (user == "admin" && pass == "admin123") {
+                    println("✅ Login exitoso como Administrador.")
+                    menuAdministrador(productoService, pedidoService, reporteService, clienteService)
+                } else {
+                    println("❌ Credenciales de administrador incorrectas.")
+                    Logger.registrarAdvertencia("Intento fallido de login como administrador con usuario: $user")
+                }
+            }
+            "2" -> ejecutarSeguro {
+                println("\n--- ACCESO DE CLIENTE ---")
+                print("Teléfono: ")
+                val telefono = Validador.textoNoVacio(readln(), "Teléfono")
+                var cliente = clienteService.buscarPorTelefono(telefono)
+                if (cliente == null) {
+                    print("Nombre: ")
+                    val nombre = Validador.textoNoVacio(readln(), "Nombre")
+                    print("Dirección: ")
+                    val direccion = Validador.textoNoVacio(readln(), "Dirección")
+                    cliente = clienteService.registrarCliente(nombre, telefono, direccion)
+                    println("✅ ¡Bienvenido! Cliente registrado automáticamente en el sistema.")
+                } else {
+                    println("✅ ¡Hola de nuevo, ${cliente.nombre}!")
+                }
+                menuCliente(cliente, productoService, pedidoService)
+            }
+            "3" -> salirApp = true
+            else -> println("Opción inválida.")
+        }
+    }
+
+    println("Programa finalizado.")
+}
+
+private fun menuAdministrador(
+    productoService: ProductoService,
+    pedidoService: PedidoService,
+    reporteService: ReporteService,
+    clienteService: ClienteService
+) {
     var continuar = true
     while (continuar) {
         println("\n================================")
-        println("       PANADERÍA ROSARIO")
+        println("   PANADERÍA ROSARIO - ADMIN")
         println("================================")
         println("1. Gestión de productos")
         println("2. Registrar pedido")
@@ -29,12 +85,12 @@ fun main() {
         println("4. Actualizar estado de pedido")
         println("5. Reportes")
         println("6. Gestión de clientes")
-        println("7. Salir")
+        println("7. Cerrar sesión")
         print("Seleccione una opción: ")
 
         when (readlnOrNull()?.trim()) {
             "1" -> menuProductos(productoService)
-            "2" -> registrarPedido(productoService, pedidoService, clienteService)
+            "2" -> registrarPedidoAdmin(productoService, pedidoService, clienteService)
             "3" -> consultarPedidos(pedidoService)
             "4" -> actualizarEstado(pedidoService)
             "5" -> menuReportes(reporteService)
@@ -43,8 +99,77 @@ fun main() {
             else -> println("Opción inválida.")
         }
     }
+}
 
-    println("Programa finalizado.")
+private fun menuCliente(cliente: Cliente, productoService: ProductoService, pedidoService: PedidoService) {
+    var continuar = true
+    while (continuar) {
+        println("\n================================")
+        println("   PANADERÍA ROSARIO - CLIENTE (${cliente.nombre})")
+        println("================================")
+        println("1. Registrar pedido")
+        println("2. Consultar mis pedidos")
+        println("3. Revisar historial de pedidos")
+        println("4. Cerrar sesión")
+        print("Seleccione una opción: ")
+
+        when (readlnOrNull()?.trim()) {
+            "1" -> registrarPedidoCliente(cliente, productoService, pedidoService)
+            "2", "3" -> mostrarHistorialCliente(cliente, pedidoService)
+            "4" -> continuar = false
+            else -> println("Opción inválida.")
+        }
+    }
+}
+
+private fun registrarPedidoCliente(cliente: Cliente, productoService: ProductoService, pedidoService: PedidoService) {
+    ejecutarSeguro {
+        println("\n--- REGISTRAR PEDIDO PARA ${cliente.nombre.uppercase()} ---")
+        val detalles = mutableListOf<DetallePedido>()
+        var agregar = true
+        while (agregar) {
+            val disponibles = productoService.disponibles()
+            mostrarProductos(disponibles)
+            print("ID del producto: ")
+            val id = Validador.enteroPositivo(readln(), "ID")
+            val producto = productoService.buscarPorId(id)
+                ?: throw IllegalArgumentException("Producto no encontrado.")
+            if (!producto.disponible) throw IllegalArgumentException("El producto no está disponible.")
+
+            print("Cantidad: ")
+            val cantidad = Validador.enteroPositivo(readln(), "Cantidad")
+            val existente = detalles.find { it.producto.id == producto.id }
+            if (existente != null) existente.cantidad += cantidad
+            else detalles.add(DetallePedido(producto, cantidad))
+
+            print("¿Agregar otro producto? (s/n): ")
+            agregar = readln().trim().equals("s", ignoreCase = true)
+        }
+
+        val pedido = pedidoService.crear(cliente, detalles)
+        println("\n✅ ¡Pedido #${pedido.id} registrado con éxito!")
+        pedido.detalles.forEach {
+            println("- ${it.producto.nombre} x${it.cantidad}: $${"%.2f".format(it.calcularSubtotal())}")
+        }
+        println("Total a pagar: $${"%.2f".format(pedido.calcularTotal())}")
+    }
+}
+
+private fun mostrarHistorialCliente(cliente: Cliente, pedidoService: PedidoService) {
+    val pedidosCliente = pedidoService.listar().filter { it.cliente.telefono == cliente.telefono }
+    if (pedidosCliente.isEmpty()) {
+        println("\nNo tienes pedidos registrados todavía.")
+        return
+    }
+
+    println("\n--- HISTORIAL DE PEDIDOS DE ${cliente.nombre.uppercase()} ---")
+    pedidosCliente.forEach { pedido ->
+        println("\nPedido #${pedido.id} | Estado: ${pedido.estado} | Total: $${"%.2f".format(pedido.calcularTotal())}")
+        println("Detalles:")
+        pedido.detalles.forEach { detalle ->
+            println("  - ${detalle.producto.nombre} x${detalle.cantidad} ($${"%.2f".format(detalle.calcularSubtotal())})")
+        }
+    }
 }
 
 private fun menuProductos(productoService: ProductoService) {
@@ -105,9 +230,9 @@ private fun menuProductos(productoService: ProductoService) {
     }
 }
 
-private fun registrarPedido(productoService: ProductoService, pedidoService: PedidoService, clienteService: ClienteService) {
+private fun registrarPedidoAdmin(productoService: ProductoService, pedidoService: PedidoService, clienteService: ClienteService) {
     ejecutarSeguro {
-        println("\n--- REGISTRAR PEDIDO ---")
+        println("\n--- REGISTRAR PEDIDO (ADMIN) ---")
         print("Nombre del cliente: ")
         val nombre = Validador.textoNoVacio(readln(), "Nombre")
         print("Teléfono: ")
@@ -150,11 +275,6 @@ private fun registrarPedido(productoService: ProductoService, pedidoService: Ped
             println("- ${it.producto.nombre} x${it.cantidad}: $${"%.2f".format(it.calcularSubtotal())}")
         }
         println("Total: $${"%.2f".format(pedido.calcularTotal())}")
-
-        val subtotalPan = pedido.totalCategoria(Categoria.PAN)
-        if (subtotalPan in 0.01..<2.00) {
-            println("Aviso: el subtotal de pan es $${"%.2f".format(subtotalPan)}; la política de mínimo aún puede ajustarse.")
-        }
     }
 }
 
@@ -212,7 +332,7 @@ private fun leerCategoria(): Categoria {
     }
 }
 
-private fun mostrarProductos(productos: List<panaderiarosario.model.Producto>) {
+private fun mostrarProductos(productos: List<Producto>) {
     if (productos.isEmpty()) {
         println("No hay productos para mostrar.")
         return
@@ -261,17 +381,17 @@ private fun menuClientes(clienteService: ClienteService, pedidoService: PedidoSe
             }
             "2" -> ejecutarSeguro {
                 print("Nombre: ")
-                val nombre = panaderiarosario.util.Validador.textoNoVacio(readln(), "Nombre")
+                val nombre = Validador.textoNoVacio(readln(), "Nombre")
                 print("Teléfono: ")
-                val telefono = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                val telefono = Validador.textoNoVacio(readln(), "Teléfono")
                 print("Dirección: ")
-                val direccion = panaderiarosario.util.Validador.textoNoVacio(readln(), "Dirección")
+                val direccion = Validador.textoNoVacio(readln(), "Dirección")
                 clienteService.registrarCliente(nombre, telefono, direccion)
                 println("✅ Cliente registrado exitosamente.")
             }
             "3" -> ejecutarSeguro {
                 print("Teléfono a buscar: ")
-                val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                val tel = Validador.textoNoVacio(readln(), "Teléfono")
                 val cliente = clienteService.buscarPorTelefono(tel)
                 if (cliente != null) {
                     val pedidosCliente = pedidoService.listar().filter { it.cliente.telefono == cliente.telefono }
@@ -288,7 +408,7 @@ private fun menuClientes(clienteService: ClienteService, pedidoService: PedidoSe
             }
             "4" -> ejecutarSeguro {
                 print("Teléfono a eliminar: ")
-                val tel = panaderiarosario.util.Validador.textoNoVacio(readln(), "Teléfono")
+                val tel = Validador.textoNoVacio(readln(), "Teléfono")
                 if (clienteService.eliminarCliente(tel)) println("✅ Cliente eliminado.")
                 else println("❌ Cliente no encontrado.")
             }
