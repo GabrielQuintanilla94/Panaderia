@@ -1,7 +1,7 @@
 package panaderiarosario.service
 
+import android.content.Context
 import panaderiarosario.model.EstadoPedido
-import java.io.File
 
 class ReporteService(
     private val productoService: ProductoService,
@@ -10,7 +10,9 @@ class ReporteService(
     fun generarResumen(): String {
         val productos = productoService.listar()
         val pedidos = pedidoService.listar()
-        val ventas = pedidos.filter { it.estado == EstadoPedido.ENTREGADO }.sumOf { it.calcularTotal() }
+        val ventas = pedidos
+            .filter { it.estado == EstadoPedido.ENTREGADO }
+            .sumOf { it.calcularTotal() }
 
         val unidadesPorProducto = pedidos
             .flatMap { it.detalles }
@@ -40,9 +42,11 @@ class ReporteService(
         }
     }
 
-    fun exportarReporte(nombreArchivo: String = "reporte_ventas.txt"): String {
-        val contenido = generarResumen()
-        File(nombreArchivo).writeText(contenido)
+    // Adaptación Android del exportador de Etapa 2: escribe dentro del almacenamiento privado de la app.
+    fun exportarReporte(context: Context, nombreArchivo: String = "reporte_ventas.txt"): String {
+        context.openFileOutput(nombreArchivo, Context.MODE_PRIVATE).bufferedWriter().use {
+            it.write(generarResumen())
+        }
         return nombreArchivo
     }
 }

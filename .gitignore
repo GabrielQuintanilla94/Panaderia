@@ -1,9 +1,10 @@
+*.iml
 .gradle/
-build/
-out/
-*.class
-*.jar
-*.log
-errores.txt
-.vscode/
+local.properties
 .idea/
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
