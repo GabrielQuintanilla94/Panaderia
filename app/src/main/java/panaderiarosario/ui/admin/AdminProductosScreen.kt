@@ -1,5 +1,6 @@
 package panaderiarosario.ui.admin
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedButton
@@ -32,6 +34,9 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
     appState.versionDatos
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
+
+    // NUEVO: Estado para manejar la categoría seleccionada
+    var categoriaSeleccionada by remember { mutableStateOf(Categoria.PAN) }
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -43,12 +48,33 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
 
         OutlinedTextField(nombre, { nombre = it }, label = { Text("Nombre nuevo producto") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(precio, { precio = it }, label = { Text("Precio") }, modifier = Modifier.fillMaxWidth())
+
+        // NUEVO: Selector visual de categorías
+        Text("Seleccione la categoría:")
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Categoria.values().forEach { categoria ->
+                if (categoria == categoriaSeleccionada) {
+                    Button(onClick = { categoriaSeleccionada = categoria }) {
+                        Text(categoria.name)
+                    }
+                } else {
+                    OutlinedButton(onClick = { categoriaSeleccionada = categoria }) {
+                        Text(categoria.name)
+                    }
+                }
+            }
+        }
+
         Button(
             onClick = {
                 error = try {
                     val n = Validador.textoNoVacio(nombre, "Nombre")
                     val p = Validador.decimalPositivo(precio, "Precio")
-                    appState.productoService.crear(n, Categoria.PAN, p)
+                    // NUEVO: Usamos la categoría que el usuario seleccionó en lugar de fijar Categoria.PAN
+                    appState.productoService.crear(n, categoriaSeleccionada, p)
                     appState.notificarCambio()
                     nombre = ""
                     precio = ""
@@ -56,8 +82,9 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
                 } catch (e: Exception) {
                     e.message
                 }
-            }
-        ) { Text("Agregar producto (PAN)") }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Agregar producto (${categoriaSeleccionada.name})") }
 
         ErrorText(error)
 

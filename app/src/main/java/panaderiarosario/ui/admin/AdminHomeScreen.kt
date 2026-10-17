@@ -18,6 +18,7 @@ fun AdminHomeScreen(
     onProductos: () -> Unit,
     onPedidos: () -> Unit,
     onReportes: () -> Unit,
+    onDelivery: () -> Unit, // NUEVO: Parámetro para conectar la pantalla
     onCerrarSesion: () -> Unit
 ) {
     Column(
@@ -27,6 +28,7 @@ fun AdminHomeScreen(
         ScreenTitle("Panel administrativo", "Panadería Rosario")
         Button(onClick = onProductos, modifier = Modifier.fillMaxWidth()) { Text("Gestión de productos") }
         Button(onClick = onPedidos, modifier = Modifier.fillMaxWidth()) { Text("Gestión de pedidos") }
+        Button(onClick = onDelivery, modifier = Modifier.fillMaxWidth()) { Text("Módulo de Delivery") } // NUEVO: Botón visible
         Button(onClick = onReportes, modifier = Modifier.fillMaxWidth()) { Text("Reportes") }
         OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth()) { Text("Cerrar sesión") }
     }

@@ -10,6 +10,7 @@ import panaderiarosario.AppState
 import panaderiarosario.ui.admin.AdminHomeScreen
 import panaderiarosario.ui.admin.AdminPedidosScreen
 import panaderiarosario.ui.admin.AdminProductosScreen
+import panaderiarosario.ui.admin.DeliveryScreen // NUEVO IMPORT
 import panaderiarosario.ui.admin.ReporteScreen
 import panaderiarosario.ui.auth.LoginScreen
 import panaderiarosario.ui.auth.RegistroScreen
@@ -85,6 +86,7 @@ fun PanaderiaApp(appState: AppState) {
                     onProductos = { nav.navigate("admin_productos") },
                     onPedidos = { nav.navigate("admin_pedidos") },
                     onReportes = { nav.navigate("reporte") },
+                    onDelivery = { nav.navigate("admin_delivery") }, // NUEVO: Enlace de navegación
                     onCerrarSesion = {
                         appState.cerrarSesion()
                         nav.navigate("login") { popUpTo(0) }
@@ -102,6 +104,11 @@ fun PanaderiaApp(appState: AppState) {
 
             composable("reporte") {
                 ReporteScreen(appState = appState, onVolver = { nav.popBackStack() })
+            }
+
+            // NUEVA PANTALLA DE DELIVERY
+            composable("admin_delivery") {
+                DeliveryScreen(appState = appState, onVolver = { nav.popBackStack() })
             }
         }
     }
