@@ -7,11 +7,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import panaderiarosario.AppState
@@ -35,7 +42,6 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
 
-    // NUEVO: Estado para manejar la categoría seleccionada
     var categoriaSeleccionada by remember { mutableStateOf(Categoria.PAN) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -44,12 +50,11 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         BackButton(onVolver)
-        ScreenTitle("Gestión de productos", "CRUD principal")
+        ScreenTitle("Gestión de productos", "CRUD principal y Stock")
 
         OutlinedTextField(nombre, { nombre = it }, label = { Text("Nombre nuevo producto") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(precio, { precio = it }, label = { Text("Precio") }, modifier = Modifier.fillMaxWidth())
 
-        // NUEVO: Selector visual de categorías
         Text("Seleccione la categoría:")
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -73,7 +78,6 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
                 error = try {
                     val n = Validador.textoNoVacio(nombre, "Nombre")
                     val p = Validador.decimalPositivo(precio, "Precio")
-                    // NUEVO: Usamos la categoría que el usuario seleccionó en lugar de fijar Categoria.PAN
                     appState.productoService.crear(n, categoriaSeleccionada, p)
                     appState.notificarCambio()
                     nombre = ""
@@ -84,29 +88,58 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
                 }
             },
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Agregar producto (${categoriaSeleccionada.name})") }
+        ) { Text("Agregar producto (${categoriaSeleccionada.name}) - Stock inicial automático") }
 
         ErrorText(error)
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(appState.productoService.listar(), key = { it.id }) { producto ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("#${producto.id} ${producto.nombre}")
-                        Text("${producto.categoria} | $${"%.2f".format(producto.precio)}")
-                        Text(if (producto.disponible) "Disponible" else "No disponible")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = {
-                                appState.productoService.cambiarDisponibilidad(producto.id)
-                                appState.notificarCambio()
-                            }) {
-                                Text("Cambiar disponibilidad")
-                            }
-                            OutlinedButton(onClick = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("#${producto.id} ${producto.nombre}", style = MaterialTheme.typography.titleMedium)
+                            Text("${producto.categoria} | $${"%.2f".format(producto.precio)}")
+                            Text(
+                                if (producto.disponible) "Stock: ${producto.stock}" else "No disponible (Agotado)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (producto.disponible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                            )
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            var stockInput by remember(producto.stock) { mutableStateOf(producto.stock.toString()) }
+                            OutlinedTextField(
+                                value = stockInput,
+                                onValueChange = {
+                                    stockInput = it
+                                    it.toIntOrNull()?.let { nuevoStock ->
+                                        appState.productoService.actualizarStock(producto.id, nuevoStock)
+                                        appState.notificarCambio()
+                                    }
+                                },
+                                label = { Text("Stock") },
+                                modifier = Modifier.width(110.dp)
+                            )
+
+                            IconButton(onClick = {
                                 appState.productoService.eliminar(producto.id)
                                 appState.notificarCambio()
                             }) {
-                                Text("Eliminar")
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar producto",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }

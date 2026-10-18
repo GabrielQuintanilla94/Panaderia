@@ -13,14 +13,14 @@ class ProductoService(
 
     fun buscarPorId(id: Int): Producto? = productos.find { it.id == id }
 
-    // Nueva función para terminar la gestión de productos
     fun buscarPorCategoria(categoriaBuscada: Categoria): List<Producto> {
         return productos.filter { it.categoria == categoriaBuscada }
     }
 
     fun crear(nombre: String, categoria: Categoria, precio: Double): Producto {
         val nuevoId = (productos.maxOfOrNull { it.id } ?: 0) + 1
-        val producto = Producto(nuevoId, nombre, categoria, precio, true)
+        val stockInicial = if (categoria == Categoria.PAN) 70 else 20
+        val producto = Producto(nuevoId, nombre, categoria, precio, stockInicial)
         productos.add(producto)
         return producto
     }
@@ -33,9 +33,9 @@ class ProductoService(
         return true
     }
 
-    fun cambiarDisponibilidad(id: Int): Boolean {
+    fun actualizarStock(id: Int, nuevoStock: Int): Boolean {
         val producto = buscarPorId(id) ?: return false
-        producto.disponible = !producto.disponible
+        producto.stock = maxOf(0, nuevoStock)
         return true
     }
 

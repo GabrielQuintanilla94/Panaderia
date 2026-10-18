@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,8 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import panaderiarosario.AppState
 import panaderiarosario.ui.ErrorText
 import panaderiarosario.ui.ScreenTitle
@@ -29,11 +32,9 @@ fun LoginScreen(
     appState: AppState,
     onRegistro: () -> Unit,
     onCliente: () -> Unit,
-    onAdmin: () -> Unit
+    onAdminLogin: () -> Unit
 ) {
     var telefono by remember { mutableStateOf("") }
-    var usuario by remember { mutableStateOf("") }
-    var clave by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -41,7 +42,14 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ScreenTitle("Panadería Rosario", "Acceso al sistema")
+        // Logo de pan grande
+        Text(
+            text = "🍞",
+            fontSize = 64.sp,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        ScreenTitle("Panadería Rosario", "Acceso de Clientes")
         Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
@@ -51,6 +59,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
+        Spacer(Modifier.height(8.dp))
         Button(
             onClick = {
                 error = when {
@@ -63,36 +72,25 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         ) { Text("Ingresar como cliente") }
 
+        Spacer(Modifier.height(8.dp))
         OutlinedButton(onClick = onRegistro, modifier = Modifier.fillMaxWidth()) {
-            Text("Registrar cliente")
+            Text("Registrar nuevo cliente")
         }
 
-        Spacer(Modifier.height(24.dp))
-        Text("Acceso administrativo")
+        Spacer(Modifier.height(48.dp))
 
-        OutlinedTextField(
-            value = usuario,
-            onValueChange = { usuario = it },
-            label = { Text("Usuario") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = clave,
-            onValueChange = { clave = it },
-            label = { Text("Contraseña") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Button(
-            onClick = {
-                error = if (appState.loginAdministrador(usuario, clave)) null
-                else "Credenciales de administrador incorrectas."
-                if (error == null) onAdmin()
-            },
+        // Botón de acceso administrativo con icono de llave/herramienta (Build)
+        OutlinedButton(
+            onClick = onAdminLogin,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Ingresar como administrador") }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Build,
+                contentDescription = "Acceso Administrativo",
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text("Acceso Administrativo")
+        }
 
         ErrorText(error)
     }

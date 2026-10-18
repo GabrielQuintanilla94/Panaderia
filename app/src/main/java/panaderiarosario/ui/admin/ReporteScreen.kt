@@ -26,21 +26,19 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
     val context = LocalContext.current
     val resumen = appState.reporteService.generarResumen()
 
-    // NUEVO: Obtenemos los pedidos para calcular los datos del gráfico
     val pedidos = appState.pedidoService.listar()
-    val totalPedidos = pedidos.size.coerceAtLeast(1) // Evitamos división por cero matemáticamente
+    val totalPedidos = pedidos.size.coerceAtLeast(1)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()), // Permitimos hacer scroll si el contenido es muy largo
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BackButton(onVolver)
         ScreenTitle("Reporte del sistema")
 
-        // NUEVO: Gráfico visual de barras construido nativamente con Compose
         Text("Gráfico de Pedidos por Estado", fontWeight = FontWeight.Bold)
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -58,13 +56,11 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            // Etiqueta del estado
                             Text(
                                 text = estado.name,
                                 modifier = Modifier.weight(0.4f),
                                 style = MaterialTheme.typography.bodySmall
                             )
-                            // Barra de fondo y barra de progreso superpuesta
                             Box(
                                 modifier = Modifier
                                     .weight(0.5f)
@@ -78,7 +74,6 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
                                         .background(MaterialTheme.colorScheme.primary)
                                 )
                             }
-                            // Cantidad numérica
                             Text(
                                 text = "$cantidad",
                                 modifier = Modifier.weight(0.1f).padding(start = 8.dp),
@@ -97,8 +92,8 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
 
         Button(
             onClick = {
-                val nombre = appState.reporteService.exportarReporte(context)
-                Toast.makeText(context, "Reporte guardado: $nombre", Toast.LENGTH_SHORT).show()
+                val nombre = appState.reporteService.exportarReportePdf(context)
+                Toast.makeText(context, "PDF guardado en Descargas: $nombre", Toast.LENGTH_LONG).show()
             },
             modifier = Modifier.fillMaxWidth()
         ) { Text("Exportar reporte PDF") }

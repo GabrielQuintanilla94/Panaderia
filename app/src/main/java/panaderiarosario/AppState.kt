@@ -56,21 +56,44 @@ class AppState {
     }
 
     fun cerrarSesion() {
+        carrito.forEach { (id, cant) ->
+            productoService.buscarPorId(id)?.let { it.stock += cant }
+        }
         clienteActual = null
         esAdministrador = false
         carrito.clear()
         versionDatos++
     }
 
-    fun agregarAlCarrito(producto: Producto) {
-        if (!producto.disponible) return
-        carrito[producto.id] = (carrito[producto.id] ?: 0) + 1
+    fun agregarAlCarrito(producto: Producto, cantidad: Int = 1) {
+        if (!producto.disponible || cantidad <= 0) return
+        val aAgregar = minOf(cantidad, producto.stock)
+        if (aAgregar <= 0) return
+
+        val actual = carrito[producto.id] ?: 0
+        carrito[producto.id] = actual + aAgregar
+        producto.stock -= aAgregar
         versionDatos++
     }
 
     fun cambiarCantidad(productoId: Int, delta: Int) {
-        val nueva = (carrito[productoId] ?: 0) + delta
-        if (nueva <= 0) carrito.remove(productoId) else carrito[productoId] = nueva
+        val producto = productoService.buscarPorId(productoId) ?: return
+        val actualEnCarrito = carrito[productoId] ?: 0
+
+        if (delta > 0) {
+            val aAgregar = minOf(delta, producto.stock)
+            if (aAgregar > 0) {
+                carrito[productoId] = actualEnCarrito + aAgregar
+                producto.stock -= aAgregar
+            }
+        } else {
+            val aRemover = minOf(-delta, actualEnCarrito)
+            if (aRemover > 0) {
+                val restante = actualEnCarrito - aRemover
+                if (restante <= 0) carrito.remove(productoId) else carrito[productoId] = restante
+                producto.stock += aRemover
+            }
+        }
         versionDatos++
     }
 

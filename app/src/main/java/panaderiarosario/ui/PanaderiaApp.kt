@@ -1,17 +1,16 @@
 package panaderiarosario.ui
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import panaderiarosario.AppState
 import panaderiarosario.ui.admin.AdminHomeScreen
 import panaderiarosario.ui.admin.AdminPedidosScreen
 import panaderiarosario.ui.admin.AdminProductosScreen
-import panaderiarosario.ui.admin.DeliveryScreen // NUEVO IMPORT
+import panaderiarosario.ui.admin.DeliveryScreen
 import panaderiarosario.ui.admin.ReporteScreen
+import panaderiarosario.ui.auth.AdminLoginScreen
 import panaderiarosario.ui.auth.LoginScreen
 import panaderiarosario.ui.auth.RegistroScreen
 import panaderiarosario.ui.cliente.CarritoScreen
@@ -29,11 +28,19 @@ fun PanaderiaApp(appState: AppState) {
                 LoginScreen(
                     appState = appState,
                     onRegistro = { nav.navigate("registro") },
+                    onAdminLogin = { nav.navigate("admin_login") },
                     onCliente = {
                         nav.navigate("catalogo") {
                             popUpTo("login") { inclusive = true }
                         }
-                    },
+                    }
+                )
+            }
+
+            composable("admin_login") {
+                AdminLoginScreen(
+                    appState = appState,
+                    onVolver = { nav.popBackStack() },
                     onAdmin = {
                         nav.navigate("admin") {
                             popUpTo("login") { inclusive = true }
@@ -86,7 +93,7 @@ fun PanaderiaApp(appState: AppState) {
                     onProductos = { nav.navigate("admin_productos") },
                     onPedidos = { nav.navigate("admin_pedidos") },
                     onReportes = { nav.navigate("reporte") },
-                    onDelivery = { nav.navigate("admin_delivery") }, // NUEVO: Enlace de navegación
+                    onDelivery = { nav.navigate("admin_delivery") },
                     onCerrarSesion = {
                         appState.cerrarSesion()
                         nav.navigate("login") { popUpTo(0) }
@@ -106,7 +113,6 @@ fun PanaderiaApp(appState: AppState) {
                 ReporteScreen(appState = appState, onVolver = { nav.popBackStack() })
             }
 
-            // NUEVA PANTALLA DE DELIVERY
             composable("admin_delivery") {
                 DeliveryScreen(appState = appState, onVolver = { nav.popBackStack() })
             }
