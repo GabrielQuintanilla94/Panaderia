@@ -7,6 +7,8 @@ class ProductoService(
     private val productos: MutableList<Producto>
 ) : MantenimientoBase<Producto, Int> {
 
+    fun reemplazar(nuevos: List<Producto>) { productos.clear(); productos.addAll(nuevos) }
+
     override fun listar(): List<Producto> = productos.toList()
 
     fun disponibles(): List<Producto> = productos.filter { it.disponible }

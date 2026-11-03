@@ -18,6 +18,8 @@ import panaderiarosario.AppState
 import panaderiarosario.model.EstadoPedido
 import panaderiarosario.ui.BackButton
 import panaderiarosario.ui.ScreenTitle
+import panaderiarosario.ui.EmptyState
+import panaderiarosario.ui.StatusChip
 
 @Composable
 fun DeliveryScreen(appState: AppState, onVolver: () -> Unit) {
@@ -26,14 +28,14 @@ fun DeliveryScreen(appState: AppState, onVolver: () -> Unit) {
     val pedidosEnDelivery = appState.pedidoService.listar().filter { it.estado == EstadoPedido.EN_CAMINO }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BackButton(onVolver)
-        ScreenTitle("Módulo de Delivery", "Pedidos en tránsito")
+        ScreenTitle("En buenas manos", "Pedidos que van en camino.")
 
         if (pedidosEnDelivery.isEmpty()) {
-            Text("No hay pedidos en ruta para entregar.")
+            EmptyState("Por ahora, todo entregado", "Los pedidos en camino aparecerán en este espacio.")
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(pedidosEnDelivery, key = { it.id }) { pedido ->
@@ -50,7 +52,7 @@ fun DeliveryScreen(appState: AppState, onVolver: () -> Unit) {
                                 onClick = { appState.avanzarEstado(pedido) },
                                 modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
                             ) {
-                                Text("Marcar como ENTREGADO")
+                                Text("Confirmar entrega")
                             }
                         }
                     }

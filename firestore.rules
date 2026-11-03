@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function admin() { return signedIn() && request.auth.token.get('admin', false) == true; }
+    function orderPath(id) { return /databases/$(database)/documents/pedidos/$(id); }
+    match /usuarios/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || admin());
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nombre', 'telefono', 'direccion', 'email'])
+        && request.resource.data.nombre is string && request.resource.data.telefono is string
+        && request.resource.data.direccion is string && request.resource.data.email == request.auth.token.email;
+    }
+    match /productos/{id} {
+      allow read: if signedIn();
+      allow create, delete: if admin();
+      allow update: if admin() || (signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'ultimoPedido'])
+        && request.resource.data.stock is int && request.resource.data.stock >= 0
+        && request.resource.data.stock < resource.data.stock
+        && !exists(orderPath(request.resource.data.ultimoPedido))
+        && getAfter(orderPath(request.resource.data.ultimoPedido)).data.usuarioId == request.auth.uid
+        && resource.data.stock - request.resource.data.stock ==
+           getAfter(orderPath(request.resource.data.ultimoPedido)).data.cantidades[id]);
+    }
+    match /contadores/pedidos {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['valor', 'ultimoPedido'])
+        && request.resource.data.valor is int
+        && ((!exists(/databases/$(database)/documents/contadores/pedidos) && request.resource.data.valor == 1)
+          || (exists(/databases/$(database)/documents/contadores/pedidos) && request.resource.data.valor == resource.data.valor + 1))
+        && !exists(orderPath(request.resource.data.ultimoPedido))
+        && getAfter(orderPath(request.resource.data.ultimoPedido)).data.usuarioId == request.auth.uid
+        && getAfter(orderPath(request.resource.data.ultimoPedido)).data.id == request.resource.data.valor;
+    }
+    match /pedidos/{id} {
+      allow read: if signedIn() && (resource.data.usuarioId == request.auth.uid || admin());
+      allow create: if signedIn() && request.resource.data.usuarioId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['id', 'usuarioId', 'estado', 'creadoEn', 'cliente', 'detalles', 'cantidades', 'total'])
+        && request.resource.data.estado == 'RECIBIDO' && request.resource.data.creadoEn == request.time
+        && request.resource.data.detalles is list && request.resource.data.detalles.size() > 0
+        && request.resource.data.cantidades is map && request.resource.data.total is number
+        && request.resource.data.total > 0
+        && getAfter(/databases/$(database)/documents/contadores/pedidos).data.ultimoPedido == id
+        && getAfter(/databases/$(database)/documents/contadores/pedidos).data.valor == request.resource.data.id;
+      allow update: if admin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && ((resource.data.estado == 'RECIBIDO' && request.resource.data.estado == 'EN_PREPARACION')
+          || (resource.data.estado == 'EN_PREPARACION' && request.resource.data.estado == 'EN_CAMINO')
+          || (resource.data.estado == 'EN_CAMINO' && request.resource.data.estado == 'ENTREGADO'));
+    }
+  }
+}

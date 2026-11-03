@@ -8,3 +8,11 @@ captures/
 .externalNativeBuild/
 .cxx/
 *.apk
+
+# Firebase project configuration is supplied locally.
+app/google-services.json
+
+.kotlin/
+*-debug.log
+
+__pycache__/
