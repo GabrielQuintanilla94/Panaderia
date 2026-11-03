@@ -4,7 +4,9 @@ data class Pedido(
     val id: Int,
     val cliente: Cliente,
     val detalles: MutableList<DetallePedido>,
-    var estado: EstadoPedido = EstadoPedido.RECIBIDO
+    var estado: EstadoPedido = EstadoPedido.RECIBIDO,
+    val documentoId: String = "",
+    val usuarioId: String = ""
 ) : Calculable {
     override fun calcularTotal(): Double = detalles.sumOf { it.calcularSubtotal() }
 

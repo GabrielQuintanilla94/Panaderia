@@ -1,200 +1,141 @@
 package panaderiarosario.ui.cliente
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import panaderiarosario.AppState
 import panaderiarosario.model.Categoria
-import panaderiarosario.ui.ScreenTitle
+import panaderiarosario.ui.BreadMark
+import panaderiarosario.ui.EmptyState
 
 @Composable
-fun CatalogoScreen(
-    appState: AppState,
-    onCarrito: () -> Unit,
-    onPedidos: () -> Unit,
-    onCerrarSesion: () -> Unit
-) {
+fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> Unit, onCerrarSesion: () -> Unit) {
     appState.versionDatos
     var categoria by remember { mutableStateOf<Categoria?>(null) }
+    var busqueda by remember { mutableStateOf("") }
     val cantidades = remember { mutableStateMapOf<Int, Int>() }
-
-    val productos = if (categoria == null) {
-        appState.productoService.listar() // Listamos todos para que vean stock y agotados si aplica
-    } else {
-        appState.productoService.buscarPorCategoria(categoria!!)
+    val productos = appState.productoService.listar().filter {
+        (categoria == null || it.categoria == categoria) && it.nombre.contains(busqueda.trim(), ignoreCase = true)
     }
+    val totalItems = appState.carrito.values.sum()
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Cabecera con Título a la izquierda y Carrito / Salir en la esquina superior derecha
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ScreenTitle(
-                "Catálogo",
-                "Hola, ${appState.clienteActual?.nombre ?: "cliente"}"
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onCarrito) {
-                    BadgedBox(
-                        badge = {
-                            val totalItems = appState.carrito.values.sum()
-                            if (totalItems > 0) {
-                                Badge { Text("$totalItems") }
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = "Carrito"
-                        )
-                    }
+    Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
+        NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
+            NavigationBarItem(selected = true, onClick = {}, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Inicio") })
+            NavigationBarItem(selected = false, onClick = onPedidos, icon = { Icon(Icons.AutoMirrored.Filled.List, null) }, label = { Text("Mis pedidos") })
+            NavigationBarItem(selected = false, onClick = onCarrito, icon = {
+                BadgedBox(badge = { if (totalItems > 0) Badge { Text(totalItems.toString()) } }) {
+                    Icon(Icons.Default.ShoppingCart, null)
                 }
-                IconButton(onClick = onCerrarSesion) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = "Salir"
-                    )
-                }
-            }
+            }, label = { Text("Carrito") })
         }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onPedidos) { Text("Mis pedidos") }
-        }
-
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    }) { padding ->
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)) {
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    FilterChip(
-                        selected = categoria == null,
-                        onClick = { categoria = null },
-                        label = { Text("Todos") }
-                    )
-                    Categoria.entries.forEach { cat ->
-                        FilterChip(
-                            selected = categoria == cat,
-                            onClick = { categoria = cat },
-                            label = { Text(cat.name.lowercase().replaceFirstChar(Char::uppercase)) }
-                        )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("ROSARIO", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, letterSpacing = 3.sp)
+                        Text("Hola, ${appState.clienteActual?.nombre?.substringBefore(' ') ?: "cliente"}", style = MaterialTheme.typography.titleLarge)
+                    }
+                    IconButton(onClick = onCerrarSesion) { Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar sesión") }
+                }
+            }
+            item {
+                Surface(shape = RoundedCornerShape(26.dp), color = MaterialTheme.colorScheme.primary) {
+                    Row(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))).padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("SABOR DE CASA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f), letterSpacing = 1.5.sp)
+                            Text("Recién hecho,\npara ti.", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                            Text("Pequeños antojos.\nGrandes momentos.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f))
+                        }
+                        BreadMark(Modifier.size(108.dp))
                     }
                 }
             }
-
+            item {
+                OutlinedTextField(busqueda, { busqueda = it }, placeholder = { Text("¿Qué se te antoja?") }, singleLine = true,
+                    leadingIcon = { Icon(Icons.Default.Search, null) }, shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface))
+            }
+            item {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = categoria == null, onClick = { categoria = null }, label = { Text("Todo") })
+                    Categoria.entries.forEach { cat ->
+                        FilterChip(selected = categoria == cat, onClick = { categoria = cat }, label = { Text(etiqueta(cat)) })
+                    }
+                }
+            }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Elige tu favorito", style = MaterialTheme.typography.titleLarge)
+                    Text("${productos.size} opciones", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (productos.isEmpty()) item {
+                EmptyState("Aquí comienza el antojo", if (busqueda.isBlank()) "Pronto encontrarás productos en esta categoría." else "Prueba con otro nombre o categoría.")
+            }
             items(productos, key = { it.id }) { producto ->
-                val cantidadActual = cantidades[producto.id] ?: 1
-
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
-                        Text(producto.categoria.name, style = MaterialTheme.typography.bodySmall)
-                        Text("$${"%.2f".format(producto.precio)}", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "Stock disponible: ${producto.stock}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (producto.disponible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                        )
-
-                        if (!producto.disponible) {
-                            Text(
-                                "🚫 Agotado",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        } else {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Selector de cantidad (- y +) limitado por el stock disponible
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    OutlinedButton(
-                                        onClick = {
-                                            if (cantidadActual > 1) {
-                                                cantidades[producto.id] = cantidadActual - 1
-                                            }
-                                        },
-                                        modifier = Modifier.size(36.dp),
-                                        contentPadding = PaddingValues(0.dp)
-                                    ) {
-                                        Text("-")
-                                    }
-                                    Text("$cantidadActual", style = MaterialTheme.typography.bodyLarge)
-                                    OutlinedButton(
-                                        onClick = {
-                                            if (cantidadActual < producto.stock) {
-                                                cantidades[producto.id] = cantidadActual + 1
-                                            }
-                                        },
-                                        modifier = Modifier.size(36.dp),
-                                        contentPadding = PaddingValues(0.dp)
-                                    ) {
-                                        Text("+")
-                                    }
-                                }
-
-                                // Botón de agregar con la cantidad seleccionada
-                                Button(onClick = {
-                                    appState.agregarAlCarrito(producto, cantidadActual)
-                                    cantidades[producto.id] = 1 // Reiniciar a 1 tras agregar
-                                }) {
-                                    Text("Agregar al carrito")
-                                }
+                val cantidad = (cantidades[producto.id] ?: 1).coerceIn(1, maxOf(1, producto.stock))
+                Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Surface(shape = MaterialTheme.shapes.medium, color = if (producto.categoria == Categoria.PAN) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer) {
+                                BreadMark(Modifier.size(82.dp).padding(5.dp))
                             }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(etiqueta(producto.categoria), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
+                                Text("$${"%.2f".format(producto.precio)}", fontWeight = FontWeight.Bold, fontSize = 23.sp, color = MaterialTheme.colorScheme.secondary)
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        if (producto.disponible) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    FilledTonalIconButton(onClick = { cantidades[producto.id] = cantidad - 1 }, enabled = cantidad > 1) { Text("−", fontSize = 22.sp) }
+                                    Text(cantidad.toString(), modifier = Modifier.padding(horizontal = 8.dp), fontWeight = FontWeight.Bold)
+                                    FilledTonalIconButton(onClick = { cantidades[producto.id] = cantidad + 1 }, enabled = cantidad < producto.stock) { Text("+", fontSize = 22.sp) }
+                                }
+                                Button(onClick = { appState.agregarAlCarrito(producto, cantidad); cantidades[producto.id] = 1 }, modifier = Modifier.heightIn(min = 48.dp)) { Text("Agregar") }
+                            }
+                            Text("${producto.stock} disponibles", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        } else {
+                            Text("Agotado por ahora", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
             }
+            item { Spacer(Modifier.height(8.dp)) }
         }
     }
+}
+
+private fun etiqueta(categoria: Categoria) = when (categoria) {
+    Categoria.PAN -> "Pan artesanal"
+    Categoria.REPOSTERIA -> "Repostería"
+    Categoria.DESAYUNO -> "Desayunos"
+    Categoria.CENA -> "Cenas"
 }

@@ -9,6 +9,8 @@ class PedidoService {
 
     private val pedidos = mutableListOf<Pedido>()
 
+    fun reemplazar(nuevos: List<Pedido>) { pedidos.clear(); pedidos.addAll(nuevos) }
+
     fun listar(): List<Pedido> = pedidos.toList()
 
     fun buscarPorId(id: Int): Pedido? =

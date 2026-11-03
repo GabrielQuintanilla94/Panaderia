@@ -1,5 +1,9 @@
 package panaderiarosario.ui
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,7 +27,11 @@ fun PanaderiaApp(appState: AppState) {
     PanaderiaRosarioTheme {
         val nav = rememberNavController()
 
-        NavHost(navController = nav, startDestination = "login") {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+        if (appState.errorNube != null) panaderiarosario.ui.ErrorText(appState.errorNube)
+        if (appState.cargando) androidx.compose.material3.LinearProgressIndicator()
+        NavHost(navController = nav, startDestination = "login", modifier = Modifier.weight(1f)) {
             composable("login") {
                 LoginScreen(
                     appState = appState,
@@ -116,6 +124,8 @@ fun PanaderiaApp(appState: AppState) {
             composable("admin_delivery") {
                 DeliveryScreen(appState = appState, onVolver = { nav.popBackStack() })
             }
+        }
+        }
         }
     }
 }

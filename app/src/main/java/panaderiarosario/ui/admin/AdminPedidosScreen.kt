@@ -18,6 +18,8 @@ import panaderiarosario.AppState
 import panaderiarosario.model.EstadoPedido
 import panaderiarosario.ui.BackButton
 import panaderiarosario.ui.ScreenTitle
+import panaderiarosario.ui.EmptyState
+import panaderiarosario.ui.StatusChip
 
 @Composable
 fun AdminPedidosScreen(appState: AppState, onVolver: () -> Unit) {
@@ -25,14 +27,14 @@ fun AdminPedidosScreen(appState: AppState, onVolver: () -> Unit) {
     val pedidos = appState.pedidoService.listar()
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BackButton(onVolver)
-        ScreenTitle("Gestión de pedidos")
+        ScreenTitle("Cada pedido cuenta", "Organiza, prepara y entrega.")
 
         if (pedidos.isEmpty()) {
-            Text("No hay pedidos registrados.")
+            EmptyState("Todo al día", "Los nuevos pedidos aparecerán aquí para que puedas prepararlos.")
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(pedidos, key = { it.id }) { pedido ->
@@ -50,7 +52,7 @@ fun AdminPedidosScreen(appState: AppState, onVolver: () -> Unit) {
                                 Text("• ${detalle.cantidad}x ${detalle.producto.nombre} ($${"%.2f".format(detalle.calcularSubtotal())})")
                             }
 
-                            Text("Estado: ${pedido.estado}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                            StatusChip(pedido.estado)
                             Text("Total Final: $${"%.2f".format(pedido.calcularTotal())}")
 
                             if (pedido.estado != EstadoPedido.ENTREGADO) {
@@ -58,7 +60,7 @@ fun AdminPedidosScreen(appState: AppState, onVolver: () -> Unit) {
                                     onClick = { appState.avanzarEstado(pedido) },
                                     modifier = Modifier.padding(top = 8.dp)
                                 ) {
-                                    Text("Avanzar al siguiente estado")
+                                    Text("Actualizar estado")
                                 }
                             }
                         }

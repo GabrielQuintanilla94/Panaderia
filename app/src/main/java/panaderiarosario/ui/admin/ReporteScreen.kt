@@ -37,9 +37,9 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BackButton(onVolver)
-        ScreenTitle("Reporte del sistema")
+        ScreenTitle("Así va tu panadería", "Cada pedido cuenta una historia.")
 
-        Text("Gráfico de Pedidos por Estado", fontWeight = FontWeight.Bold)
+        Text("El pulso de tus pedidos", fontWeight = FontWeight.Bold)
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -57,7 +57,7 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = estado.name,
+                                text = estado.name.lowercase().replace('_', ' ').replaceFirstChar(Char::uppercase),
                                 modifier = Modifier.weight(0.4f),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -85,7 +85,7 @@ fun ReporteScreen(appState: AppState, onVolver: () -> Unit) {
             }
         }
 
-        Text("Resumen detallado", fontWeight = FontWeight.Bold)
+        Text("Tu operación, en un vistazo", fontWeight = FontWeight.Bold)
         Card(modifier = Modifier.fillMaxWidth()) {
             Text(resumen, modifier = Modifier.padding(16.dp))
         }
