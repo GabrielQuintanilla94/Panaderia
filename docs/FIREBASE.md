@@ -83,7 +83,7 @@ un sistema de pagos ni recuperación de contraseña en este avance.
 6. Entrar con otra cuenta; comprobar que no aparece el historial del cliente anterior.
 7. Entrar como administrador, crear/editar productos y avanzar el pedido por los estados.
 8. Volver al cliente y observar la actualización del historial, sin recrear el pedido.
-9. Mostrar reportes y el PDF de investigación.
+9. Mostrar reportes.
 
 Validación local:
 

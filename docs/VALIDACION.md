@@ -10,8 +10,6 @@
 - La opción `-PfirebaseEmulators=true` también compiló con el rediseño Compose.
 - Smoke funcional del emulador Firebase Authentication: registro, inicio de sesión,
   consulta de identidad y rechazo de contraseña incorrecta. Cuenta temporal eliminada.
-- PDF de investigación de seis páginas generado y revisado por extracción de texto
-  y renderizado de una página.
 - `git diff --check` sin errores.
 
 ## Pendiente de configuración o dispositivo

@@ -85,8 +85,6 @@ productos, totales, reemplazo de historial y secuencia de estados.
 
 ## Entrega académica
 
-- [Investigación sobre Firebase, PDF](docs/Investigacion_Firebase_Panaderia.pdf).
-- Fuente reproducible: `scripts/generar_investigacion.py` (ReportLab y fuentes DejaVu).
 - Reglas: `firestore.rules`; despliegue detallado en la guía de Firebase.
 - La guía incluye un recorrido para el video de demostración de hasta 15 minutos.
   El video debe grabarse con el proyecto configurado y un dispositivo Android.
