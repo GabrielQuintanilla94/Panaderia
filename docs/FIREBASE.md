@@ -3,7 +3,8 @@
 La app incorpora Firebase Authentication (correo/contraseña y Google), perfiles,
 catálogo compartido, pedidos e historial en Firestore. No se ha creado un proyecto
 remoto ni se han desplegado reglas desde este repositorio. Sin configuración, el
-APK compila y muestra un mensaje al intentar autenticarse; no simula una sesión.
+APK permite probar los módulos en una demostración local identificada en pantalla,
+con datos guardados en el dispositivo. No se presenta como autenticación Firebase.
 
 ## Crear el proyecto (una sola vez)
 
@@ -139,3 +140,14 @@ python3 scripts/smoke_auth_emulator.py
 
 Ese smoke test registra una cuenta temporal, verifica acceso e identidad, comprueba
 el rechazo de una contraseña incorrecta y elimina la cuenta al finalizar.
+
+## Prueba inmediata del proyecto existente
+
+Después de `git pull origin main`, sincronizar y ejecutar **app**. Si no hay
+`google-services.json`, usar **Probar como cliente** y **Probar administración**.
+No se requieren servidores. Los pedidos y el catálogo se conservan localmente.
+Para usar Firebase real, agregar su configuración y volver a compilar; el modo
+local no se ofrece cuando está configurado Firebase. El modo con
+`-PfirebaseEmulators=true` sigue disponible por separado para probar los SDK.
+En Windows Gradle genera archivos fuera de OneDrive automáticamente, sin mover
+el repositorio. Esta configuración no elimina los antiguos archivos `app/build`.

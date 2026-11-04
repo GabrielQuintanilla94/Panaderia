@@ -30,3 +30,22 @@
 
 Se guardaron `install_script`, `start_skill` y el dominio adicional de red en el
 borrador. Guardar el borrador no aplica la red, publica el entorno ni valida una tarea nueva.
+
+## Corrección para probar después de hacer pull
+
+Se agregó demostración local automática cuando no existe configuración Firebase.
+Los accesos de cliente y administrador permiten probar catálogo, carrito, pedidos,
+historial y cambios de estado sin servidores. Los datos locales se conservan en
+un archivo privado del dispositivo, separados de Firebase.
+
+Se ejecutaron seis pruebas JVM, todas aprobadas: las cuatro anteriores y dos
+pruebas de persistencia local que recuperan catálogo/pedidos después de recrear
+el repositorio y verifican que la entrega y los precios históricos se conservan.
+El APK de debug compiló correctamente. No se ejecutaron pruebas de interfaz en
+un dispositivo Android ni compilación en un host Windows.
+
+En Windows se redirigieron los directorios de resultados de Gradle a
+`%LOCALAPPDATA%/PanaderiaBuild/<identificador>/`, para evitar que los archivos
+intermedios se generen dentro de OneDrive. El checkout permanece en su ubicación.
+Esto no descarta modificaciones locales de Git ni elimina archivos antiguos.
+Los flujos reales de Google y Firestore siguen requiriendo un proyecto Firebase.

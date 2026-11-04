@@ -15,8 +15,10 @@ import panaderiarosario.service.PedidoService
 import panaderiarosario.service.ProductoService
 import panaderiarosario.service.ReporteService
 
-class AppState : androidx.lifecycle.ViewModel() {
+class AppState(application: android.app.Application) : androidx.lifecycle.AndroidViewModel(application) {
     private val firebase = runCatching { com.google.firebase.FirebaseApp.getInstance(); panaderiarosario.data.FirebaseRepository() }.getOrNull()
+    val modoDemostracion = firebase == null
+    private val local = if (modoDemostracion) panaderiarosario.data.LocalRepository(java.io.File(application.filesDir, "demostracion.json")) else null
     private var pedidosListener: com.google.firebase.firestore.ListenerRegistration? = null
     private var productosListener: com.google.firebase.firestore.ListenerRegistration? = null
     var errorNube by mutableStateOf<String?>(null)
@@ -93,6 +95,24 @@ class AppState : androidx.lifecycle.ViewModel() {
     private var catalogoRemoto: List<Producto> = emptyList()
     val carrito = mutableMapOf<Int, Int>()
 
+    fun entrarDemostracion(administrador: Boolean) {
+        check(modoDemostracion) { "El modo local solo está disponible sin configuración Firebase." }
+        cerrarSesion()
+        productoService.reemplazar(requireNotNull(local).productos.map { it.copy() })
+        pedidoService.reemplazar(local.pedidos.toList())
+        esAdministrador = administrador
+        clienteActual = if (administrador) null else Cliente("Cliente de prueba", "77777777", "Dirección de prueba")
+        versionDatos++
+    }
+
+    private fun guardarDemostracion() {
+        val storage = requireNotNull(local)
+        val catalogo = productoService.listar().map { p -> p.copy(stock = p.stock + (carrito[p.id] ?: 0)) }
+        storage.guardar(catalogo, pedidoService.listar())
+        storage.productos.clear(); storage.productos.addAll(catalogo)
+        storage.pedidos.clear(); storage.pedidos.addAll(pedidoService.listar())
+    }
+
     fun cerrarSesion() {
         pedidosListener?.remove()
         productosListener?.remove()
@@ -150,20 +170,25 @@ class AppState : androidx.lifecycle.ViewModel() {
         requireNotNull(clienteActual) { "Debe iniciar sesión como cliente." }
         require(nombre.isNotBlank() && telefono.isNotBlank() && direccion.isNotBlank()) { "Complete nombre, teléfono y dirección de entrega." }
         val cliente = Cliente(nombre.trim(), telefono.trim(), direccion.trim())
-        repo().guardarPerfil(cliente)
+        if (!modoDemostracion) repo().guardarPerfil(cliente)
         clienteActual = cliente
         val detalles = carrito.mapNotNull { (id, cantidad) ->
-            productoService.buscarPorId(id)?.let { DetallePedido(it, cantidad) }
+            productoService.buscarPorId(id)?.let { DetallePedido(it.copy(stock = it.stock + cantidad), cantidad) }
         }.toMutableList()
-        val pedido = repo().crearPedido(cliente, detalles)
+        val pedido = if (modoDemostracion) {
+            val creado = pedidoService.crear(cliente, detalles).copy(
+                documentoId = java.util.UUID.randomUUID().toString(), usuarioId = panaderiarosario.data.LocalRepository.CLIENTE_ID)
+            pedidoService.reemplazar(pedidoService.listar().filter { it.id != creado.id } + creado)
+            creado
+        } else repo().crearPedido(cliente, detalles)
         carrito.clear()
-        actualizarCatalogoLocal()
+        if (modoDemostracion) guardarDemostracion() else actualizarCatalogoLocal()
         versionDatos++
         return pedido
     }
 
     fun pedidosCliente(): List<Pedido> {
-        val uid = firebase?.auth?.currentUser?.uid ?: return emptyList()
+        val uid = if (modoDemostracion) panaderiarosario.data.LocalRepository.CLIENTE_ID else firebase?.auth?.currentUser?.uid ?: return emptyList()
         return pedidoService.listar().filter { it.usuarioId == uid }
     }
 
@@ -175,6 +200,12 @@ class AppState : androidx.lifecycle.ViewModel() {
             EstadoPedido.ENTREGADO -> return
         }
         if (!esAdministrador) return
+        if (modoDemostracion) {
+            pedidoService.actualizarEstado(pedido.id, siguiente)
+            guardarDemostracion()
+            versionDatos++
+            return
+        }
         viewModelScope.launch {
             try { repo().avanzar(pedido, siguiente) }
             catch (e: Exception) { errorNube = "No se pudo actualizar el pedido: ${e.localizedMessage}" }
@@ -196,6 +227,7 @@ class AppState : androidx.lifecycle.ViewModel() {
 
     fun notificarCambio() {
         versionDatos++
+        if (modoDemostracion) { guardarDemostracion(); return }
         if (esAdministrador) viewModelScope.launch {
             try { repo().guardarCatalogo(productoService.listar()) }
             catch (e: Exception) { errorNube = "No se guardaron los cambios del catálogo: ${e.localizedMessage}" }

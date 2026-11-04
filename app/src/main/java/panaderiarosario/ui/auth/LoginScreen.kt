@@ -61,6 +61,16 @@ fun AccesoCorreo(appState: AppState, admin: Boolean, onIngresado: () -> Unit,
         Spacer(Modifier.height(4.dp))
         ScreenTitle(if (admin) "Tu espacio de trabajo" else "Qué gusto verte",
             if (admin) "Ingresa con tu cuenta administrativa." else "Tu próximo antojo comienza aquí.")
+        if (appState.modoDemostracion) {
+            InfoCard {
+                Text("Demostración sin conexión", style = MaterialTheme.typography.titleMedium)
+                Text("Prueba el catálogo, carrito, pedidos y administración. Los datos se guardan en este dispositivo; este modo no utiliza Firebase.", style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = { appState.entrarDemostracion(admin); onIngresado() }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
+                    Text(if (admin) "Probar administración" else "Probar como cliente")
+                }
+                if (!admin) TextButton(onClick = onVolver) { Text("Probar administración") }
+            }
+        } else {
         OutlinedTextField(email, { email = it }, label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !ocupado, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
         OutlinedTextField(clave, { clave = it }, label = { Text("Contraseña") },
@@ -105,6 +115,7 @@ fun AccesoCorreo(appState: AppState, admin: Boolean, onIngresado: () -> Unit,
             }) { Text("G", fontWeight = FontWeight.Bold); Spacer(Modifier.width(12.dp)); Text("Continuar con Google") }
             OutlinedButton(enabled = !ocupado, onClick = onRegistro, modifier = Modifier.fillMaxWidth()) { Text("Crear cuenta") }
             TextButton(enabled = !ocupado, onClick = onVolver) { Text("Acceso administrativo") }
+        }
         }
         ErrorText(error)
     }

@@ -14,13 +14,26 @@ entregas y administración de una panadería.
 - Administración mediante custom claim `admin`, sin contraseñas locales de prueba.
 - Gestión de productos, existencias, pedidos, entregas y reportes PDF.
 
-La integración del cliente está implementada. **El proyecto Firebase remoto todavía
-no ha sido creado ni configurado.** La guía [docs/FIREBASE.md](docs/FIREBASE.md)
-explica la creación, proveedores, certificados, reglas y permisos administrativos.
-`app/google-services.json` debe suministrarse localmente para conectar una cuenta real.
+## Ejecutar después de hacer pull
 
-Para trabajar sin proyecto remoto se incluye un modo explícito de Firebase
-Emulator Suite. Google OAuth real requiere configuración remota; no se simula ese proveedor.
+Abrir el proyecto existente en Android Studio, sincronizar Gradle y ejecutar **app**.
+Sin `google-services.json`, el arranque habilita automáticamente una **demostración
+local**: elegir **Probar como cliente** o **Probar administración**. No requiere
+cuentas, Firebase CLI ni servidores. Incluye catálogo inicial, carrito, confirmación,
+historial, gestión de productos, entrega y reportes. Catálogo y pedidos se guardan
+en el almacenamiento privado del dispositivo y sobreviven al reinicio de la app.
+Los dos accesos de prueba comparten los datos de demostración del dispositivo.
+Este modo no autentica usuarios ni demuestra persistencia en Firestore.
+
+En Windows los resultados de compilación se generan automáticamente en
+`%LOCALAPPDATA%/PanaderiaBuild/<identificador>/`, fuera de OneDrive y de la ruta
+larga del proyecto. El código permanece en su carpeta original; Android Studio
+reconoce las rutas desde Gradle. No es necesario volver a clonar el repositorio.
+
+Para conectar los servicios reales, seguir [docs/FIREBASE.md](docs/FIREBASE.md).
+Al agregar `app/google-services.json`, la app usa Firebase en lugar de la demostración.
+El proyecto remoto y Google OAuth aún deben configurarse en la cuenta propietaria.
+La demostración local mantiene sus datos separados de Firebase y no los sube.
 
 ## Diseño móvil
 
@@ -41,10 +54,10 @@ export ANDROID_HOME=/ruta/al/android-sdk
 bash gradlew :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
 ```
 
-APK: `app/build/outputs/apk/debug/app-debug.apk`.
+APK en Linux/macOS: `app/build/outputs/apk/debug/app-debug.apk`.
+En Windows: `%LOCALAPPDATA%/PanaderiaBuild/<identificador>/app/outputs/apk/debug/app-debug.apk`.
 
-Sin `google-services.json`, la compilación funciona, pero el acceso remoto muestra
-que falta configuración. No hay un ingreso local que omita Firebase.
+Sin `google-services.json`, la app usa la demostración local identificada en pantalla.
 
 ### Modo local
 
