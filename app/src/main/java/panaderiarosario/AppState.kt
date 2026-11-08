@@ -235,13 +235,8 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         }
     }
 
-    // PLUS 1: Calcula cuántos productos diferentes hay disponibles en la nube
+    // Calcula cuántos productos diferentes hay disponibles en la nube
     fun totalProductosDisponibles(): Int {
         return productoService.listar().count { it.disponible && it.stock > 0 }
-    }
-
-    // PLUS 2: Cantidad total de panes en el carrito (Para el número flotante rojo)
-    fun cantidadTotalEnCarrito(): Int {
-        return carrito.values.sum()
     }
 }
