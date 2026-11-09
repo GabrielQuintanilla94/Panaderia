@@ -14,6 +14,16 @@ entregas y administración de una panadería.
 - Administración mediante custom claim `admin`, sin contraseñas locales de prueba.
 - Gestión de productos, existencias, pedidos, entregas y reportes PDF.
 
+## Descargar Android Studio
+
+Para abrir y ejecutar el proyecto se necesita **Android Studio** (gratuito, Windows/macOS/Linux):
+
+👉 **[Descargar Android Studio](https://developer.android.com/studio)**
+
+Al instalarlo, el asistente descarga el Android SDK y crea un emulador (AVD).
+Android Studio ya incluye un JDK 17 compatible con este proyecto.
+Guía oficial de instalación: <https://developer.android.com/studio/install>
+
 ## Ejecutar después de hacer pull
 
 Abrir el proyecto existente en Android Studio, sincronizar Gradle y ejecutar **app**.
