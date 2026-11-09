@@ -44,17 +44,16 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
 
     private suspend fun iniciarSesion(administrador: Boolean) {
         try {
-            val admin = true
+            val admin = administrador && repo().esAdmin()
             require(!administrador || admin) { "Esta cuenta no tiene permisos de administrador." }
-            val perfil = runCatching { repo().perfil() }.getOrNull()
+            val perfil = if (admin) null else runCatching { repo().perfil() }.getOrElse { perfilBasico() }
             pedidosListener?.remove()
             productosListener?.remove()
             carrito.clear()
             pedidoService.reemplazar(emptyList())
 
-            esAdministrador = administrador && admin
-            clienteActual = perfil ?: Cliente("Cliente de prueba", "12345678", "Dirección de prueba")
-
+            esAdministrador = admin
+            clienteActual = perfil
             errorNube = null
             cargando = true
             pedidosListener = repo().observarPedidos(esAdministrador) { pedidos, error ->
@@ -68,10 +67,16 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
                     catalogoRemoto = productos!!.map { it.copy() }
                     actualizarCatalogoLocal()
                     versionDatos++
-                    if (catalogoRemoto.isEmpty()) publicarCatalogoInicial()
+                    if (catalogoRemoto.isEmpty() && esAdministrador) publicarCatalogoInicial()
                 }
             }
         } catch (e: Exception) { cerrarSesion(); throw e }
+    }
+
+    /** Perfil mínimo con los datos de la cuenta cuando Firestore no responde. */
+    private fun perfilBasico(): Cliente {
+        val user = firebase?.auth?.currentUser
+        return Cliente(user?.displayName ?: user?.email?.substringBefore('@') ?: "Cliente", "", "")
     }
 
     suspend fun recuperarSesion(): Boolean {
@@ -86,7 +91,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     val pedidoService = PedidoService()
     val reporteService = ReporteService(productoService, pedidoService)
 
-    var clienteActual by mutableStateOf<Cliente?>(Cliente("Cliente por defecto", "00000000", "San Salvador"))
+    var clienteActual by mutableStateOf<Cliente?>(null)
         private set
 
     var esAdministrador by mutableStateOf(false)
@@ -126,7 +131,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         carrito.forEach { (id, cant) ->
             productoService.buscarPorId(id)?.let { it.stock += cant }
         }
-        clienteActual = Cliente("Cliente por defecto", "00000000", "San Salvador")
+        clienteActual = null
         esAdministrador = false
         carrito.clear()
         versionDatos++
@@ -170,6 +175,8 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         }
 
     suspend fun confirmarPedido(nombre: String, telefono: String, direccion: String): Pedido {
+        check(clienteActual != null && !esAdministrador) { "Debe iniciar sesión como cliente." }
+        require(carrito.isNotEmpty()) { "El carrito está vacío." }
         require(nombre.isNotBlank() && telefono.isNotBlank() && direccion.isNotBlank()) { "Complete nombre, teléfono y dirección de entrega." }
         val cliente = Cliente(nombre.trim(), telefono.trim(), direccion.trim())
         if (!modoDemostracion) runCatching { repo().guardarPerfil(cliente) }
@@ -201,6 +208,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
             EstadoPedido.EN_CAMINO -> EstadoPedido.ENTREGADO
             EstadoPedido.ENTREGADO -> return
         }
+        if (!esAdministrador) return
         if (modoDemostracion) {
             pedidoService.actualizarEstado(pedido.id, siguiente)
             guardarDemostracion()
@@ -229,13 +237,14 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     fun notificarCambio() {
         versionDatos++
         if (modoDemostracion) { guardarDemostracion(); return }
+        if (!esAdministrador) return
         viewModelScope.launch {
             try { repo().guardarCatalogo(productoService.listar()) }
             catch (e: Exception) { errorNube = "No se guardaron los cambios del catálogo: ${e.localizedMessage}" }
         }
     }
 
-    // Calcula cuántos productos diferentes hay disponibles en la nube
+    // Cantidad de productos con existencias disponibles
     fun totalProductosDisponibles(): Int {
         return productoService.listar().count { it.disponible && it.stock > 0 }
     }
