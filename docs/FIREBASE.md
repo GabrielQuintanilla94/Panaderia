@@ -3,7 +3,8 @@
 La app incorpora Firebase Authentication (correo/contraseña y Google), perfiles,
 catálogo compartido, pedidos e historial en Firestore. No se ha creado un proyecto
 remoto ni se han desplegado reglas desde este repositorio. Sin configuración, el
-APK compila y muestra un mensaje al intentar autenticarse; no simula una sesión.
+APK permite probar los módulos en una demostración local identificada en pantalla,
+con datos guardados en el dispositivo. No se presenta como autenticación Firebase.
 
 ## Crear el proyecto (una sola vez)
 
@@ -11,32 +12,42 @@ APK compila y muestra un mensaje al intentar autenticarse; no simula una sesión
 2. Crear un proyecto. Analytics es opcional para este avance.
 3. Registrar una aplicación Android con el identificador exacto
    `com.panaderiarosario.app`.
-4. Obtener las huellas del certificado de depuración con `bash gradlew :app:signingReport`.
-   Registrar SHA-1 y SHA-256 en la configuración Android del proyecto.
+4. Registrar estas huellas en Configuración del proyecto → Tus apps → Android → Agregar huella.
+   Corresponden a `app/debug.keystore`, compartido en el repositorio, por lo que son
+   iguales en todas las computadoras del equipo:
+   - SHA-1: `EB:F8:29:6F:48:75:8A:30:52:44:6A:E7:49:49:78:50:B7:CD:11:54`
+   - SHA-256: `BF:A9:10:52:1C:27:5F:FD:FB:FA:C1:CF:CB:E0:EC:AD:C1:2C:A9:75:70:77:B3:CF:7A:9B:6F:2B:38:4A:BB:B3`
+   Se pueden comprobar con `bash gradlew :app:signingReport`.
 5. En Authentication → Métodos de acceso, activar **Correo electrónico/contraseña**
    y **Google**, seleccionando el correo de soporte.
 6. Descargar nuevamente `google-services.json` después de habilitar Google y colocar
    el archivo en `app/google-services.json`. El cliente OAuth de tipo web genera
    `default_web_client_id`, utilizado por Credential Manager. No usar el ID OAuth Android.
+   Hacer commit y push del archivo: así el resto del equipo obtiene la configuración con pull.
 7. Crear Cloud Firestore en modo producción y elegir la región antes de cargar datos.
 8. Copiar `firestore.rules` a la pestaña Reglas y publicar, o usar el CLI autenticado:
    `firebase deploy --only firestore:rules --project ID_DEL_PROYECTO`.
 9. Compilar e instalar el APK en Android 7 o superior con servicios de Google Play.
    Para Google, usar un dispositivo con cuenta Google o un emulador con Play Store.
 
-`google-services.json` contiene configuración cliente, no una clave de servicio.
-Se mantiene fuera del control de versiones para no vincular el código a una cuenta.
-Nunca agregar claves privadas de servicio al APK ni crear reglas de acceso público.
+`google-services.json` contiene configuración cliente, no una clave de servicio, y
+se versiona para que todo el equipo use el mismo proyecto. La seguridad depende de
+Authentication y de las reglas. Nunca agregar claves privadas de cuentas de servicio
+(`*firebase-adminsdk*.json`, ignoradas por Git) al repositorio ni al APK, ni crear
+reglas de acceso público.
 
 ## Administrador y catálogo inicial
 
 Crear primero una cuenta normal con correo/contraseña desde la app. Copiar su UID
- desde Authentication. En un entorno administrativo confiable con credenciales de
-aplicación y permisos del proyecto (por ejemplo Google Cloud Shell), instalar
-`firebase-admin` y ejecutar:
+desde Authentication → Usuarios. Abrir Google Cloud Shell con la cuenta propietaria
+(https://shell.cloud.google.com), subir `scripts/set_admin.py` con el menú
+**Subir** de Cloud Shell y ejecutar:
 
 ```bash
-python scripts/set_admin.py ID_DEL_PROYECTO UID_DEL_USUARIO
+gcloud auth application-default login
+gcloud auth application-default set-quota-project ID_DEL_PROYECTO
+pip install --user firebase-admin
+python3 set_admin.py ID_DEL_PROYECTO UID_DEL_USUARIO
 ```
 
 El script conserva otros claims y agrega `admin: true`. No se puede otorgar este
@@ -82,7 +93,7 @@ un sistema de pagos ni recuperación de contraseña en este avance.
 6. Entrar con otra cuenta; comprobar que no aparece el historial del cliente anterior.
 7. Entrar como administrador, crear/editar productos y avanzar el pedido por los estados.
 8. Volver al cliente y observar la actualización del historial, sin recrear el pedido.
-9. Mostrar reportes y el PDF de investigación.
+9. Mostrar reportes.
 
 Validación local:
 
@@ -139,3 +150,14 @@ python3 scripts/smoke_auth_emulator.py
 
 Ese smoke test registra una cuenta temporal, verifica acceso e identidad, comprueba
 el rechazo de una contraseña incorrecta y elimina la cuenta al finalizar.
+
+## Prueba inmediata del proyecto existente
+
+Después de `git pull origin main`, sincronizar y ejecutar **app**. Si no hay
+`google-services.json`, usar **Probar como cliente** y **Probar administración**.
+No se requieren servidores. Los pedidos y el catálogo se conservan localmente.
+Para usar Firebase real, agregar su configuración y volver a compilar; el modo
+local no se ofrece cuando está configurado Firebase. El modo con
+`-PfirebaseEmulators=true` sigue disponible por separado para probar los SDK.
+En Windows Gradle genera archivos fuera de OneDrive automáticamente, sin mover
+el repositorio. Esta configuración no elimina los antiguos archivos `app/build`.

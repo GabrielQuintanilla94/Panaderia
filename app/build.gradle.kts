@@ -23,8 +23,20 @@ android {
         buildConfigField("boolean", "FIREBASE_EMULATORS", "false")
     }
 
+    // Llave de depuración compartida: todo el equipo genera la misma huella SHA-1,
+    // así el acceso con Google funciona en cualquier computadora tras hacer pull.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
             buildConfigField("boolean", "FIREBASE_EMULATORS", providers.gradleProperty("firebaseEmulators").orElse("false").get())
         }
     }
@@ -52,6 +64,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.code.gson:gson:2.11.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
