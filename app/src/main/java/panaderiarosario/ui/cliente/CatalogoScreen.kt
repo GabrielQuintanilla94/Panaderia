@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import panaderiarosario.AppState
@@ -28,7 +29,8 @@ import panaderiarosario.ui.BreadMark
 import panaderiarosario.ui.EmptyState
 
 @Composable
-fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> Unit, onCerrarSesion: () -> Unit) {
+fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> Unit, onCerrarSesion: () -> Unit,
+                   onDetalle: (Int) -> Unit = {}) {
     appState.versionDatos
     var categoria by remember { mutableStateOf<Categoria?>(null) }
     var busqueda by remember { mutableStateOf("") }
@@ -98,7 +100,7 @@ fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> U
             }
             items(productos, key = { it.id }) { producto ->
                 val cantidad = (cantidades[producto.id] ?: 1).coerceIn(1, maxOf(1, producto.stock))
-                Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                Card(onClick = { onDetalle(producto.id) }, modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -108,6 +110,8 @@ fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> U
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(etiqueta(producto.categoria), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
+                                if (producto.descripcion.isNotBlank()) Text(producto.descripcion, style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 Text("$${"%.2f".format(producto.precio)}", fontWeight = FontWeight.Bold, fontSize = 23.sp, color = MaterialTheme.colorScheme.secondary)
                             }
                         }
@@ -133,7 +137,7 @@ fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> U
     }
 }
 
-private fun etiqueta(categoria: Categoria) = when (categoria) {
+internal fun etiqueta(categoria: Categoria) = when (categoria) {
     Categoria.PAN -> "Pan artesanal"
     Categoria.REPOSTERIA -> "Repostería"
     Categoria.DESAYUNO -> "Desayunos"

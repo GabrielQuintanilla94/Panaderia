@@ -7,12 +7,51 @@ import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Environment
 import android.provider.MediaStore
+import panaderiarosario.model.Categoria
 import panaderiarosario.model.EstadoPedido
+import panaderiarosario.model.Pedido
+import java.util.Calendar
+
+/** Períodos disponibles para filtrar los reportes. */
+enum class Periodo(val etiqueta: String) {
+    HOY("Hoy"), SEMANA("7 días"), MES("30 días"), TODO("Todo");
+
+    /** Inicio del período en milisegundos; 0 incluye todos los pedidos. */
+    fun desde(ahora: Long = System.currentTimeMillis()): Long = when (this) {
+        HOY -> Calendar.getInstance().apply {
+            timeInMillis = ahora
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        SEMANA -> ahora - 7L * DIA
+        MES -> ahora - 30L * DIA
+        TODO -> 0L
+    }
+
+    private companion object { const val DIA = 24L * 60 * 60 * 1000 }
+}
 
 class ReporteService(
     private val productoService: ProductoService,
     private val pedidoService: PedidoService
 ) {
+    /** Pedidos registrados desde [desde] (0 = todos). */
+    fun pedidosDesde(desde: Long = 0L): List<Pedido> =
+        pedidoService.listar().filter { desde == 0L || it.fecha >= desde }
+
+    /** Importe vendido por categoría, incluidas las categorías sin ventas. */
+    fun ventasPorCategoria(desde: Long = 0L): Map<Categoria, Double> {
+        val pedidos = pedidosDesde(desde)
+        return Categoria.entries.associateWith { categoria -> pedidos.sumOf { it.totalCategoria(categoria) } }
+    }
+
+    /** Productos ordenados por unidades vendidas (mayor a menor). */
+    fun productosMasVendidos(desde: Long = 0L, limite: Int = 5): List<Pair<String, Int>> =
+        pedidosDesde(desde).flatMap { it.detalles }
+            .groupBy { it.producto.nombre }
+            .map { (nombre, detalles) -> nombre to detalles.sumOf { it.cantidad } }
+            .sortedWith(compareByDescending<Pair<String, Int>> { it.second }.thenBy { it.first })
+            .take(limite)
+
     fun generarResumen(): String {
         val productos = productoService.listar()
         val pedidos = pedidoService.listar()
@@ -49,6 +88,15 @@ class ReporteService(
             } else {
                 appendLine("Producto más vendido: Sin datos todavía")
             }
+            appendLine("------------------------------")
+            appendLine("Ventas por categoría:")
+            ventasPorCategoria().forEach { (categoria, total) ->
+                appendLine("  ${nombreCategoria(categoria)}: $${"%.2f".format(total)}")
+            }
+            appendLine("Productos más vendidos:")
+            val top = productosMasVendidos()
+            if (top.isEmpty()) appendLine("  Sin datos todavía")
+            top.forEachIndexed { i, (nombre, unidades) -> appendLine("  ${i + 1}. $nombre: $unidades unidades") }
             appendLine("==============================")
         }
     }
@@ -110,5 +158,14 @@ class ReporteService(
         }
         pdfDocument.close()
         return nombreArchivo
+    }
+
+    companion object {
+        fun nombreCategoria(categoria: Categoria) = when (categoria) {
+            Categoria.PAN -> "Pan"
+            Categoria.REPOSTERIA -> "Repostería"
+            Categoria.DESAYUNO -> "Desayunos"
+            Categoria.CENA -> "Cenas"
+        }
     }
 }

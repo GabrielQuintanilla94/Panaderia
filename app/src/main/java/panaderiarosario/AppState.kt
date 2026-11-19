@@ -37,6 +37,11 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         iniciarSesion(false)
     }
 
+    suspend fun loginGithub(activity: android.app.Activity) {
+        repo().github(activity)
+        iniciarSesion(false)
+    }
+
     suspend fun registrarCorreo(email: String, clave: String, nombre: String, telefono: String, direccion: String) {
         repo().register(email, clave, Cliente(nombre.trim(), telefono.trim(), direccion.trim()))
         iniciarSesion(false)
@@ -44,28 +49,16 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
 
     private suspend fun iniciarSesion(administrador: Boolean) {
         try {
-<<<<<<< HEAD
             val admin = administrador && repo().esAdmin()
             require(!administrador || admin) { "Esta cuenta no tiene permisos de administrador." }
             val perfil = if (admin) null else runCatching { repo().perfil() }.getOrElse { perfilBasico() }
-=======
-            val admin = true
-            require(!administrador || admin) { "Esta cuenta no tiene permisos de administrador." }
-            val perfil = runCatching { repo().perfil() }.getOrNull()
->>>>>>> 276329371669cbe76208611c19e064d26382466e
             pedidosListener?.remove()
             productosListener?.remove()
             carrito.clear()
             pedidoService.reemplazar(emptyList())
 
-<<<<<<< HEAD
             esAdministrador = admin
             clienteActual = perfil
-=======
-            esAdministrador = administrador && admin
-            clienteActual = perfil ?: Cliente("Cliente de prueba", "12345678", "Dirección de prueba")
-
->>>>>>> 276329371669cbe76208611c19e064d26382466e
             errorNube = null
             cargando = true
             pedidosListener = repo().observarPedidos(esAdministrador) { pedidos, error ->
@@ -79,25 +72,18 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
                     catalogoRemoto = productos!!.map { it.copy() }
                     actualizarCatalogoLocal()
                     versionDatos++
-<<<<<<< HEAD
                     if (catalogoRemoto.isEmpty() && esAdministrador) publicarCatalogoInicial()
-=======
-                    if (catalogoRemoto.isEmpty()) publicarCatalogoInicial()
->>>>>>> 276329371669cbe76208611c19e064d26382466e
                 }
             }
         } catch (e: Exception) { cerrarSesion(); throw e }
     }
 
-<<<<<<< HEAD
     /** Perfil mínimo con los datos de la cuenta cuando Firestore no responde. */
     private fun perfilBasico(): Cliente {
         val user = firebase?.auth?.currentUser
         return Cliente(user?.displayName ?: user?.email?.substringBefore('@') ?: "Cliente", "", "")
     }
 
-=======
->>>>>>> 276329371669cbe76208611c19e064d26382466e
     suspend fun recuperarSesion(): Boolean {
         if (firebase?.auth?.currentUser == null) return false
         iniciarSesion(false)
@@ -110,7 +96,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     val pedidoService = PedidoService()
     val reporteService = ReporteService(productoService, pedidoService)
 
-    var clienteActual by mutableStateOf<Cliente?>(Cliente("Cliente por defecto", "00000000", "San Salvador"))
+    var clienteActual by mutableStateOf<Cliente?>(null)
         private set
 
     var esAdministrador by mutableStateOf(false)
@@ -150,7 +136,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         carrito.forEach { (id, cant) ->
             productoService.buscarPorId(id)?.let { it.stock += cant }
         }
-        clienteActual = Cliente("Cliente por defecto", "00000000", "San Salvador")
+        clienteActual = null
         esAdministrador = false
         carrito.clear()
         versionDatos++
@@ -194,11 +180,8 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         }
 
     suspend fun confirmarPedido(nombre: String, telefono: String, direccion: String): Pedido {
-<<<<<<< HEAD
         check(clienteActual != null && !esAdministrador) { "Debe iniciar sesión como cliente." }
         require(carrito.isNotEmpty()) { "El carrito está vacío." }
-=======
->>>>>>> 276329371669cbe76208611c19e064d26382466e
         require(nombre.isNotBlank() && telefono.isNotBlank() && direccion.isNotBlank()) { "Complete nombre, teléfono y dirección de entrega." }
         val cliente = Cliente(nombre.trim(), telefono.trim(), direccion.trim())
         if (!modoDemostracion) runCatching { repo().guardarPerfil(cliente) }
@@ -230,10 +213,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
             EstadoPedido.EN_CAMINO -> EstadoPedido.ENTREGADO
             EstadoPedido.ENTREGADO -> return
         }
-<<<<<<< HEAD
         if (!esAdministrador) return
-=======
->>>>>>> 276329371669cbe76208611c19e064d26382466e
         if (modoDemostracion) {
             pedidoService.actualizarEstado(pedido.id, siguiente)
             guardarDemostracion()
@@ -262,21 +242,14 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     fun notificarCambio() {
         versionDatos++
         if (modoDemostracion) { guardarDemostracion(); return }
-<<<<<<< HEAD
         if (!esAdministrador) return
-=======
->>>>>>> 276329371669cbe76208611c19e064d26382466e
         viewModelScope.launch {
             try { repo().guardarCatalogo(productoService.listar()) }
             catch (e: Exception) { errorNube = "No se guardaron los cambios del catálogo: ${e.localizedMessage}" }
         }
     }
 
-<<<<<<< HEAD
     // Cantidad de productos con existencias disponibles
-=======
-    // Calcula cuántos productos diferentes hay disponibles en la nube
->>>>>>> 276329371669cbe76208611c19e064d26382466e
     fun totalProductosDisponibles(): Int {
         return productoService.listar().count { it.disponible && it.stock > 0 }
     }

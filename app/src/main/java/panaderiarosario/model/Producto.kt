@@ -5,7 +5,8 @@ data class Producto(
     var nombre: String,
     var categoria: Categoria,
     var precio: Double,
-    var stock: Int = if (categoria == Categoria.PAN) 70 else 20
+    var stock: Int = if (categoria == Categoria.PAN) 70 else 20,
+    var descripcion: String = ""
 ) {
     val disponible: Boolean
         get() = stock > 0

@@ -10,11 +10,6 @@
 - La opción `-PfirebaseEmulators=true` también compiló con el rediseño Compose.
 - Smoke funcional del emulador Firebase Authentication: registro, inicio de sesión,
   consulta de identidad y rechazo de contraseña incorrecta. Cuenta temporal eliminada.
-<<<<<<< HEAD
-- PDF de investigación de seis páginas generado y revisado por extracción de texto
-  y renderizado de una página.
-=======
->>>>>>> 276329371669cbe76208611c19e064d26382466e
 - `git diff --check` sin errores.
 
 ## Pendiente de configuración o dispositivo
@@ -33,8 +28,6 @@
 
 Se guardaron `install_script`, `start_skill` y el dominio adicional de red en el
 borrador. Guardar el borrador no aplica la red, publica el entorno ni valida una tarea nueva.
-<<<<<<< HEAD
-=======
 
 ## Corrección para probar después de hacer pull
 
@@ -54,4 +47,3 @@ En Windows se redirigieron los directorios de resultados de Gradle a
 intermedios se generen dentro de OneDrive. El checkout permanece en su ubicación.
 Esto no descarta modificaciones locales de Git ni elimina archivos antiguos.
 Los flujos reales de Google y Firestore siguen requiriendo un proyecto Firebase.
->>>>>>> 276329371669cbe76208611c19e064d26382466e

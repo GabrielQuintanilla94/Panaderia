@@ -19,19 +19,20 @@ class ProductoService(
         return productos.filter { it.categoria == categoriaBuscada }
     }
 
-    fun crear(nombre: String, categoria: Categoria, precio: Double): Producto {
+    fun crear(nombre: String, categoria: Categoria, precio: Double, descripcion: String = ""): Producto {
         val nuevoId = (productos.maxOfOrNull { it.id } ?: 0) + 1
         val stockInicial = if (categoria == Categoria.PAN) 70 else 20
-        val producto = Producto(nuevoId, nombre, categoria, precio, stockInicial)
+        val producto = Producto(nuevoId, nombre, categoria, precio, stockInicial, descripcion.trim())
         productos.add(producto)
         return producto
     }
 
-    fun actualizar(id: Int, nombre: String, categoria: Categoria, precio: Double): Boolean {
+    fun actualizar(id: Int, nombre: String, categoria: Categoria, precio: Double, descripcion: String? = null): Boolean {
         val producto = buscarPorId(id) ?: return false
         producto.nombre = nombre
         producto.categoria = categoria
         producto.precio = precio
+        if (descripcion != null) producto.descripcion = descripcion.trim()
         return true
     }
 

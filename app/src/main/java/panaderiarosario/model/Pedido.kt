@@ -6,7 +6,9 @@ data class Pedido(
     val detalles: MutableList<DetallePedido>,
     var estado: EstadoPedido = EstadoPedido.RECIBIDO,
     val documentoId: String = "",
-    val usuarioId: String = ""
+    val usuarioId: String = "",
+    /** Fecha de creación en milisegundos (0 si es desconocida). */
+    val fecha: Long = System.currentTimeMillis()
 ) : Calculable {
     override fun calcularTotal(): Double = detalles.sumOf { it.calcularSubtotal() }
 

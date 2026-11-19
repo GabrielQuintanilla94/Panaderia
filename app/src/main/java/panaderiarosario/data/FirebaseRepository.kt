@@ -28,6 +28,15 @@ class FirebaseRepository {
         auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await()
     }
 
+    /** Inicio de sesión con GitHub mediante el flujo OAuth de Firebase (abre el navegador). */
+    suspend fun github(activity: android.app.Activity) {
+        val pendiente = auth.pendingAuthResult
+        if (pendiente != null) { pendiente.await(); return }
+        val provider = com.google.firebase.auth.OAuthProvider.newBuilder("github.com")
+            .setScopes(listOf("user:email")).build()
+        auth.startActivityForSignInWithProvider(activity, provider).await()
+    }
+
     suspend fun register(email: String, password: String, cliente: Cliente) {
         auth.createUserWithEmailAndPassword(email.trim(), password).await()
         // Authentication can succeed even if profile persistence fails. Retrying login repairs it.
@@ -123,10 +132,11 @@ class FirebaseRepository {
 
     companion object {
         fun productoMap(p: Producto): Map<String, Any> = mapOf("id" to p.id, "nombre" to p.nombre,
-            "categoria" to p.categoria.name, "precio" to p.precio, "stock" to p.stock)
+            "categoria" to p.categoria.name, "precio" to p.precio, "stock" to p.stock, "descripcion" to p.descripcion)
         fun producto(m: Map<String, Any>): Producto = Producto((m["id"] as Number).toInt(),
             m["nombre"] as String, Categoria.valueOf(m["categoria"] as String),
-            (m["precio"] as Number).toDouble(), (m["stock"] as Number).toInt())
+            (m["precio"] as Number).toDouble(), (m["stock"] as Number).toInt(),
+            (m["descripcion"] as? String).orEmpty())
         private fun pedido(doc: DocumentSnapshot): Pedido {
             val c = doc.get("cliente") as Map<*, *>
             val detalles = (doc.get("detalles") as List<*>).map { item ->
@@ -136,7 +146,8 @@ class FirebaseRepository {
             }.toMutableList()
             return Pedido(doc.getLong("id")!!.toInt(), Cliente(c["nombre"] as String,
                 c["telefono"] as String, c["direccion"] as String), detalles,
-                EstadoPedido.valueOf(doc.getString("estado")!!), doc.id, doc.getString("usuarioId")!!)
+                EstadoPedido.valueOf(doc.getString("estado")!!), doc.id, doc.getString("usuarioId")!!,
+                doc.getTimestamp("creadoEn", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toDate()?.time ?: 0L)
         }
     }
 }
