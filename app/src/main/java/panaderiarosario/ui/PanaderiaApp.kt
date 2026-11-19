@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+<<<<<<< HEAD
+=======
+import androidx.compose.ui.unit.dp
+>>>>>>> 276329371669cbe76208611c19e064d26382466e
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,6 +33,12 @@ fun PanaderiaApp(appState: AppState) {
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+<<<<<<< HEAD
+=======
+        if (appState.modoDemostracion) androidx.compose.material3.Text(
+            "Demostración local · datos en este dispositivo", style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 16.dp))
+>>>>>>> 276329371669cbe76208611c19e064d26382466e
         if (appState.errorNube != null) panaderiarosario.ui.ErrorText(appState.errorNube)
         if (appState.cargando) androidx.compose.material3.LinearProgressIndicator()
         NavHost(navController = nav, startDestination = "login", modifier = Modifier.weight(1f)) {

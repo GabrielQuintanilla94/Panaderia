@@ -9,10 +9,15 @@ captures/
 .cxx/
 *.apk
 
+<<<<<<< HEAD
 # app/google-services.json se versiona: es configuración de cliente (no contiene
 # claves privadas) y permite que todo el equipo use Firebase tras hacer pull.
 # Nunca agregar claves de cuentas de servicio (*-firebase-adminsdk-*.json).
 *firebase-adminsdk*.json
+=======
+# Firebase project configuration is supplied locally.
+app/google-services.json
+>>>>>>> 276329371669cbe76208611c19e064d26382466e
 
 .kotlin/
 *-debug.log

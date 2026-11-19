@@ -57,6 +57,7 @@ fun AccesoCorreo(appState: AppState, admin: Boolean, onIngresado: () -> Unit,
                 }
                 BreadMark(Modifier.size(88.dp))
             }
+<<<<<<< HEAD
         }
         Spacer(Modifier.height(4.dp))
         ScreenTitle(if (admin) "Tu espacio de trabajo" else "Qué gusto verte",
@@ -105,6 +106,67 @@ fun AccesoCorreo(appState: AppState, admin: Boolean, onIngresado: () -> Unit,
             }) { Text("G", fontWeight = FontWeight.Bold); Spacer(Modifier.width(12.dp)); Text("Continuar con Google") }
             OutlinedButton(enabled = !ocupado, onClick = onRegistro, modifier = Modifier.fillMaxWidth()) { Text("Crear cuenta") }
             TextButton(enabled = !ocupado, onClick = onVolver) { Text("Acceso administrativo") }
+=======
+        }
+        Spacer(Modifier.height(4.dp))
+        ScreenTitle(if (admin) "Tu espacio de trabajo" else "Qué gusto verte",
+            if (admin) "Ingresa con tu cuenta administrativa." else "Tu próximo antojo comienza aquí.")
+        if (appState.modoDemostracion) {
+            InfoCard {
+                Text("Demostración sin conexión", style = MaterialTheme.typography.titleMedium)
+                Text("Prueba el catálogo, carrito, pedidos y administración. Los datos se guardan en este dispositivo; este modo no utiliza Firebase.", style = MaterialTheme.typography.bodyMedium)
+                Button(onClick = { appState.entrarDemostracion(admin); onIngresado() }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
+                    Text(if (admin) "Probar administración" else "Probar como cliente")
+                }
+                if (!admin) TextButton(onClick = onVolver) { Text("Probar administración") }
+            }
+        } else {
+        OutlinedTextField(email, { email = it }, label = { Text("Correo electrónico") },
+            modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !ocupado, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
+        OutlinedTextField(clave, { clave = it }, label = { Text("Contraseña") },
+            modifier = Modifier.fillMaxWidth(), singleLine = true, enabled = !ocupado, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = PasswordVisualTransformation())
+        Button(enabled = !ocupado, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp), onClick = {
+            scope.launch {
+                ocupado = true; error = null
+                try {
+                    require(email.isNotBlank() && clave.isNotBlank()) { "Ingrese correo y contraseña." }
+                    appState.loginCorreo(email, clave, admin)
+                    onIngresado()
+                } catch (e: CancellationException) { throw e }
+                catch (e: Exception) { error = e.localizedMessage ?: "No se pudo iniciar sesión." }
+                finally { ocupado = false }
+            }
+        }) { Text(if (ocupado) "Conectando…" else "Ingresar") }
+        if (!admin) {
+            OutlinedButton(enabled = !ocupado, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp), onClick = {
+                scope.launch {
+                    ocupado = true; error = null
+                    try {
+                        require(!panaderiarosario.BuildConfig.FIREBASE_EMULATORS) { "Google requiere un proyecto Firebase con OAuth configurado. Use correo en el modo local." }
+                        val clientId = context.getString(panaderiarosario.R.string.default_web_client_id)
+                        require(clientId.isNotBlank()) { "Configure Google en Firebase y agregue google-services.json." }
+                        val option = GetSignInWithGoogleOption.Builder(clientId).build()
+                        val result = CredentialManager.create(context).getCredential(context,
+                            GetCredentialRequest.Builder().addCredentialOption(option).build())
+                        val credential = result.credential
+                        if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                            val token = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                            appState.loginGoogle(token)
+                            onIngresado()
+                        } else {
+                            throw IllegalStateException("Google devolvió una credencial no compatible.")
+                        }
+                    } catch (_: GetCredentialCancellationException) { /* User closed the account picker. */ }
+                    catch (e: CancellationException) { throw e }
+                    catch (e: Exception) { error = e.localizedMessage ?: "No se pudo ingresar con Google." }
+                    finally { ocupado = false }
+                }
+            }) { Text("G", fontWeight = FontWeight.Bold); Spacer(Modifier.width(12.dp)); Text("Continuar con Google") }
+            OutlinedButton(enabled = !ocupado, onClick = onRegistro, modifier = Modifier.fillMaxWidth()) { Text("Crear cuenta") }
+            TextButton(enabled = !ocupado, onClick = onVolver) { Text("Acceso administrativo") }
+        }
+>>>>>>> 276329371669cbe76208611c19e064d26382466e
         }
         ErrorText(error)
     }
