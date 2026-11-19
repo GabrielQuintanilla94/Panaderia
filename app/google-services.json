@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1089565935764",
+    "project_id": "panaderia-rosario-ea62f",
+    "storage_bucket": "panaderia-rosario-ea62f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089565935764:android:2c7c287d6e10598cd10c81",
+        "android_client_info": {
+          "package_name": "com.panaderiarosario.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1089565935764-413rte55e2g0sabr5ulra7n12fgdlhui.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.panaderiarosario.app",
+            "certificate_hash": "ebf8296f48758a3052446ae749497850b7cd1154"
+          }
+        },
+        {
+          "client_id": "1089565935764-gp10psvsjb1kb60f37qoauek0ka4o075.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjEQoceHRjMqHLSodGd6llFLPB5bTMPcM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089565935764-gp10psvsjb1kb60f37qoauek0ka4o075.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
