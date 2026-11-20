@@ -106,11 +106,11 @@ bash gradlew :app:assembleDebug
 
 ## Entregas
 
-| Etapa           | Material                                                                                                                   |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------|
-| Etapa 3, Foro 1 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro1-%20QR230082.pdf) · [Video](video/Demostracion%20Panaderia.mp4)                 |
+| Etapa           | Material                                                                                                                  |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------|
+| Etapa 3, Foro 1 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro1-%20QR230082.pdf) · [Video](video/Demostracion%20Panaderia.mp4)                |
 | Etapa 3, Foro 2 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro2-%20QR230082.pdf) · [Video](video/Foro%202%20Panaderia%20Demostraci%C3%B3n.mp4) |
-| Etapa 3,  Final | [Informe](docs/DDSM941%20-%20Entrega%20Final.pdf) · [Video](video/Link)                                                    |
+| Etapa 3,  Final | [Informe](docs/DSM941%20-%20Entrega%20Final.pdf) · [Video](video/Link)                                                    |
 
 ## Licencia
 
