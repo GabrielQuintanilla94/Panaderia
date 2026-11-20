@@ -34,7 +34,26 @@ Para trabajar con este proyecto se recomienda utilizar **IntelliJ IDEA** como en
 
 ## 2. Archivos de configuración
 
+<<<<<<< Updated upstream
 ### `settings.gradle.kts`
+=======
+## Diseño UX/UI y Mockups
+
+La interfaz de usuario de **Panadería Rosario** fue diseñada con una estética artesanal cálida paleta crema , beige y marrón tostado , e implementada de forma nativa en **Jetpack Compose**.
+
+* 🔗 **Prototipo y Mockups en Figma:** [Ver diseño interactivo en Figma](https://www.figma.com/file/TU_ENLACE_DE_FIGMA_AQUI)
+
+### Flujo de Cliente
+| Inicio de Sesión |         Catálogo de Productos          | Carrito y Entrega |
+| :---: |:--------------------------------------:| :---: |
+| ![Login](docs/mockups/login.png) | ![Catálogo](docs/mockups/catalogo.png) | ![Carrito](docs/mockups/carrito.png) |
+
+### Panel de Administración
+| Inicio Admin | Gestión de Catálogo | Control de Pedidos | Reportes y Analítica |
+| :---: | :---: | :---: | :---: |
+| ![Admin Home](docs/mockups/admin_home.png) | ![Admin Productos](docs/mockups/admin_productos.png) | ![Admin Pedidos](docs/mockups/admin_pedidos.png) | ![Admin Reportes](docs/mockups/admin_reportes.png) |
+## Arquitectura
+>>>>>>> Stashed changes
 
 Define el nombre del proyecto Gradle:
 
