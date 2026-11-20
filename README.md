@@ -50,6 +50,22 @@ seguimiento:
 - **Firestore Security Rules**: aislamiento por usuario y permisos de administrador mediante custom claims.
 - Android 7.0 (API 24) o superior. Gradle 8.10.2, AGP 8.7.3.
 
+## Diseño UX/UI y Mockups
+
+La interfaz de usuario de **Panadería Rosario** fue diseñada siguiendo una estética artesanal cálida paleta crema, beige y marrón, e implementada de forma nativa en **Jetpack Compose**.
+
+* 🔗 **Prototipo y Mockups en Figma:** [Ver diseño interactivo en Figma](https://www.figma.com/design/bEmEvFYMrlgV7iOo3sYZtT/Panaderia-Rosario?node-id=0-1&t=nsuyFMK8OC02WEgu-1)
+
+### Flujo de Cliente
+| Inicio de Sesión | Catálogo de Productos | Carrito y Entrega |
+| :---: | :---: | :---: |
+| ![Login](docs/mockups/login.png) | ![Catálogo](docs/mockups/catalogo.png) | ![Carrito](docs/mockups/carrito.png) |
+
+### Panel de Administración
+| Inicio Admin | Gestión de Catálogo | Control de Pedidos | Reportes y Analítica |
+| :---: | :---: | :---: | :---: |
+| ![Admin Home](docs/mockups/admin_home.png) | ![Admin Productos](docs/mockups/admin_productos.png) | ![Admin Pedidos](docs/mockups/admin_pedidos.png) | ![Admin Reportes](docs/mockups/admin_reportes.png) |
+
 ## Arquitectura
 
 ```
@@ -90,10 +106,11 @@ bash gradlew :app:assembleDebug
 
 ## Entregas
 
-| Etapa | Material |
-| --- | --- |
-| Etapa 3, Foro 1 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro1-%20QR230082.pdf) · [Video](video/Demostracion%20Panaderia.mp4) |
+| Etapa           | Material                                                                                                                   |
+|-----------------|----------------------------------------------------------------------------------------------------------------------------|
+| Etapa 3, Foro 1 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro1-%20QR230082.pdf) · [Video](video/Demostracion%20Panaderia.mp4)                 |
 | Etapa 3, Foro 2 | [Informe](docs/DSM941%20-%20Etapa3,%20Foro2-%20QR230082.pdf) · [Video](video/Foro%202%20Panaderia%20Demostraci%C3%B3n.mp4) |
+| Etapa 3,  Final | [Informe](docs/DDSM941%20-%20Entrega%20Final.pdf) · [Video](video/Link)                                                    |
 
 ## Licencia
 
