@@ -101,8 +101,21 @@ fun StatusChip(estado: EstadoPedido) {
 /** Foto del producto; si no tiene URL o no carga, muestra la ilustración del pan. */
 @Composable
 fun ProductoImagen(producto: panaderiarosario.model.Producto, modifier: Modifier = Modifier, tamanoIlustracion: androidx.compose.ui.unit.Dp = 72.dp) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // Foto incluida en la app para los productos iniciales: res/drawable/producto_<id>.
+    @Suppress("DiscouragedApi")
+    val fotoIncluida = androidx.compose.runtime.remember(producto.id) {
+        context.resources.getIdentifier("producto_${producto.id}", "drawable", context.packageName)
+    }
     Box(modifier, contentAlignment = Alignment.Center) {
-        if (producto.imagenUrl.isBlank()) {
+        if (producto.imagenUrl.isBlank() && fotoIncluida != 0) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(fotoIncluida),
+                contentDescription = producto.nombre,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else if (producto.imagenUrl.isBlank()) {
             BreadMark(Modifier.size(tamanoIlustracion))
         } else {
             coil.compose.SubcomposeAsyncImage(

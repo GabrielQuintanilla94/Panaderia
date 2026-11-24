@@ -32,7 +32,8 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
 
     suspend fun loginCorreo(email: String, clave: String, administrador: Boolean = false) {
         repo().login(email, clave)
-        iniciarSesion(administrador)
+        // Una cuenta administradora entra al panel aunque use el acceso de clientes.
+        iniciarSesion(administrador || repo().esAdmin())
     }
 
     suspend fun loginGoogle(token: String) {
