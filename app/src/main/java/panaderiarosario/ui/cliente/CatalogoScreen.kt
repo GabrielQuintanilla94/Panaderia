@@ -105,7 +105,7 @@ fun CatalogoScreen(appState: AppState, onCarrito: () -> Unit, onPedidos: () -> U
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                             Surface(shape = MaterialTheme.shapes.medium, color = if (producto.categoria == Categoria.PAN) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer) {
-                                BreadMark(Modifier.size(82.dp).padding(5.dp))
+                                panaderiarosario.ui.ProductoImagen(producto, Modifier.size(82.dp), tamanoIlustracion = 72.dp)
                             }
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(etiqueta(producto.categoria), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

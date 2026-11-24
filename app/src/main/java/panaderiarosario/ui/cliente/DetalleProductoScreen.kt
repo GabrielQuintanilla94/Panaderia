@@ -38,9 +38,7 @@ fun DetalleProductoScreen(appState: AppState, productoId: Int, onVolver: () -> U
             else MaterialTheme.colorScheme.secondaryContainer,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Box(Modifier.fillMaxWidth().padding(28.dp), contentAlignment = Alignment.Center) {
-                BreadMark(Modifier.size(180.dp))
-            }
+            panaderiarosario.ui.ProductoImagen(producto, Modifier.fillMaxWidth().height(240.dp), tamanoIlustracion = 180.dp)
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

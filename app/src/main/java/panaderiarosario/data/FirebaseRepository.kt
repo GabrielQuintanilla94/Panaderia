@@ -132,11 +132,12 @@ class FirebaseRepository {
 
     companion object {
         fun productoMap(p: Producto): Map<String, Any> = mapOf("id" to p.id, "nombre" to p.nombre,
-            "categoria" to p.categoria.name, "precio" to p.precio, "stock" to p.stock, "descripcion" to p.descripcion)
+            "categoria" to p.categoria.name, "precio" to p.precio, "stock" to p.stock, "descripcion" to p.descripcion,
+            "imagenUrl" to p.imagenUrl)
         fun producto(m: Map<String, Any>): Producto = Producto((m["id"] as Number).toInt(),
             m["nombre"] as String, Categoria.valueOf(m["categoria"] as String),
             (m["precio"] as Number).toDouble(), (m["stock"] as Number).toInt(),
-            (m["descripcion"] as? String).orEmpty())
+            (m["descripcion"] as? String).orEmpty(), (m["imagenUrl"] as? String).orEmpty())
         private fun pedido(doc: DocumentSnapshot): Pedido {
             val c = doc.get("cliente") as Map<*, *>
             val detalles = (doc.get("detalles") as List<*>).map { item ->

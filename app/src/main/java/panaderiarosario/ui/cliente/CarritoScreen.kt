@@ -33,7 +33,9 @@ fun CarritoScreen(appState: AppState, onVolver: () -> Unit, onPedidoCreado: () -
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        BreadMark(Modifier.size(64.dp))
+                        Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.secondaryContainer) {
+                            panaderiarosario.ui.ProductoImagen(producto, Modifier.size(64.dp), tamanoIlustracion = 56.dp)
+                        }
                         Column(Modifier.weight(1f)) {
                             Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
                             Text("$${"%.2f".format(producto.precio)} por unidad", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

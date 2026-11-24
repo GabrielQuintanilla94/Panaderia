@@ -33,7 +33,9 @@ class LocalRepository(private val file: File) {
     private fun reparar(p: Producto): Producto {
         @Suppress("USELESS_CAST")
         val descripcion = (p.descripcion as String?).orEmpty().ifBlank { DatosIniciales.descripcion(p.id) }
-        return p.copy(descripcion = descripcion)
+        @Suppress("USELESS_CAST")
+        val imagenUrl = (p.imagenUrl as String?).orEmpty()
+        return p.copy(descripcion = descripcion, imagenUrl = imagenUrl)
     }
 
     companion object { const val CLIENTE_ID = "demostracion-local" }

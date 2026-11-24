@@ -9,6 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import panaderiarosario.AppState
 import panaderiarosario.ui.admin.AdminHomeScreen
 import panaderiarosario.ui.admin.AdminPedidosScreen
@@ -28,6 +31,14 @@ import panaderiarosario.ui.theme.PanaderiaRosarioTheme
 fun PanaderiaApp(appState: AppState) {
     PanaderiaRosarioTheme {
         val nav = rememberNavController()
+        // Si Android cerró la app y la restauró en una pantalla interna, la sesión ya no está
+        // cargada: se vuelve al inicio, que recupera la sesión y el rol automáticamente.
+        val rutaActual = nav.currentBackStackEntryAsState().value?.destination?.route
+        LaunchedEffect(rutaActual, appState.sesionActiva) {
+            if (!appState.sesionActiva && rutaActual != null && rutaActual !in RUTAS_SIN_SESION) {
+                nav.navigate("login") { popUpTo(0) }
+            }
+        }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
@@ -43,7 +54,7 @@ fun PanaderiaApp(appState: AppState) {
                     onRegistro = { nav.navigate("registro") },
                     onAdminLogin = { nav.navigate("admin_login") },
                     onCliente = {
-                        nav.navigate("catalogo") {
+                        nav.navigate(if (appState.esAdministrador) "admin" else "catalogo") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
@@ -144,3 +155,5 @@ fun PanaderiaApp(appState: AppState) {
         }
     }
 }
+
+private val RUTAS_SIN_SESION = setOf("login", "admin_login", "registro")

@@ -25,6 +25,9 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         private set
     var cargando by mutableStateOf(false)
         private set
+    /** Hay una sesión cargada en este proceso (se pierde si Android cierra la app). */
+    var sesionActiva by mutableStateOf(false)
+        private set
     private fun repo() = requireNotNull(firebase) { "Falta configurar Firebase. Consulte docs/FIREBASE.md." }
 
     suspend fun loginCorreo(email: String, clave: String, administrador: Boolean = false) {
@@ -75,6 +78,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
                     if (catalogoRemoto.isEmpty() && esAdministrador) publicarCatalogoInicial()
                 }
             }
+            sesionActiva = true
         } catch (e: Exception) { cerrarSesion(); throw e }
     }
 
@@ -84,9 +88,10 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         return Cliente(user?.displayName ?: user?.email?.substringBefore('@') ?: "Cliente", "", "")
     }
 
+    /** Restaura la sesión guardada por Firebase, conservando el rol de administrador. */
     suspend fun recuperarSesion(): Boolean {
         if (firebase?.auth?.currentUser == null) return false
-        iniciarSesion(false)
+        iniciarSesion(administrador = repo().esAdmin())
         return true
     }
 
@@ -115,6 +120,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
         pedidoService.reemplazar(local.pedidos.toList())
         esAdministrador = administrador
         clienteActual = if (administrador) null else Cliente("Cliente de prueba", "77777777", "Dirección de prueba")
+        sesionActiva = true
         versionDatos++
     }
 
@@ -127,6 +133,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     }
 
     fun cerrarSesion() {
+        sesionActiva = false
         pedidosListener?.remove()
         productosListener?.remove()
         firebase?.auth?.signOut()
@@ -213,7 +220,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
             EstadoPedido.EN_CAMINO -> EstadoPedido.ENTREGADO
             EstadoPedido.ENTREGADO -> return
         }
-        if (!esAdministrador) return
+        if (!esAdministrador) { errorNube = SIN_PERMISO; return }
         if (modoDemostracion) {
             pedidoService.actualizarEstado(pedido.id, siguiente)
             guardarDemostracion()
@@ -242,7 +249,7 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     fun notificarCambio() {
         versionDatos++
         if (modoDemostracion) { guardarDemostracion(); return }
-        if (!esAdministrador) return
+        if (!esAdministrador) { errorNube = SIN_PERMISO; return }
         viewModelScope.launch {
             try { repo().guardarCatalogo(productoService.listar()) }
             catch (e: Exception) { errorNube = "No se guardaron los cambios del catálogo: ${e.localizedMessage}" }
@@ -252,5 +259,9 @@ class AppState(application: android.app.Application) : androidx.lifecycle.Androi
     // Cantidad de productos con existencias disponibles
     fun totalProductosDisponibles(): Int {
         return productoService.listar().count { it.disponible && it.stock > 0 }
+    }
+
+    private companion object {
+        const val SIN_PERMISO = "La sesión de administrador no está activa. Cierra sesión y entra de nuevo por Acceso administrativo."
     }
 }

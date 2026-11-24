@@ -97,3 +97,22 @@ fun StatusChip(estado: EstadoPedido) {
             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
 }
+
+/** Foto del producto; si no tiene URL o no carga, muestra la ilustración del pan. */
+@Composable
+fun ProductoImagen(producto: panaderiarosario.model.Producto, modifier: Modifier = Modifier, tamanoIlustracion: androidx.compose.ui.unit.Dp = 72.dp) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        if (producto.imagenUrl.isBlank()) {
+            BreadMark(Modifier.size(tamanoIlustracion))
+        } else {
+            coil.compose.SubcomposeAsyncImage(
+                model = producto.imagenUrl,
+                contentDescription = producto.nombre,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp) } },
+                error = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { BreadMark(Modifier.size(tamanoIlustracion)) } }
+            )
+        }
+    }
+}

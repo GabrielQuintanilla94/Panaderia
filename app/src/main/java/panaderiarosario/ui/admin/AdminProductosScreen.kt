@@ -27,6 +27,7 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
+    var imagenUrl by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf(Categoria.PAN) }
     var error by remember { mutableStateOf<String?>(null) }
     var editando by remember { mutableStateOf<Producto?>(null) }
@@ -34,6 +35,7 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
     var editNombre by remember { mutableStateOf("") }
     var editPrecio by remember { mutableStateOf("") }
     var editDescripcion by remember { mutableStateOf("") }
+    var editImagenUrl by remember { mutableStateOf("") }
     var editCategoria by remember { mutableStateOf(Categoria.PAN) }
     var editError by remember { mutableStateOf<String?>(null) }
 
@@ -51,13 +53,16 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
                 OutlinedTextField(descripcion, { descripcion = it.take(MAX_DESCRIPCION) }, label = { Text("Descripción") },
                     minLines = 2, maxLines = 4, modifier = Modifier.fillMaxWidth(),
                     supportingText = { Text("${descripcion.length}/$MAX_DESCRIPCION") })
+                OutlinedTextField(imagenUrl, { imagenUrl = it.trim() }, label = { Text("URL de la imagen (opcional)") },
+                    placeholder = { Text("https://...") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
                 Categorias(categoria) { categoria = it }
                 Button(onClick = {
                     error = try {
                         val n = Validador.textoNoVacio(nombre, "Nombre")
                         val p = Validador.decimalPositivo(precio, "Precio")
-                        appState.productoService.crear(n, categoria, p, descripcion)
-                        appState.notificarCambio(); nombre = ""; precio = ""; descripcion = ""; null
+                        appState.productoService.crear(n, categoria, p, descripcion, validarUrl(imagenUrl))
+                        appState.notificarCambio(); nombre = ""; precio = ""; descripcion = ""; imagenUrl = ""; null
                     } catch (e: Exception) { e.localizedMessage }
                 }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Agregar al catálogo") }
                 ErrorText(error)
@@ -68,12 +73,16 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
             var stock by remember(producto.stock) { mutableStateOf(producto.stock.toString()) }
             InfoCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.padding(end = 12.dp)) {
+                        ProductoImagen(producto, Modifier.size(56.dp), tamanoIlustracion = 48.dp)
+                    }
                     Column(Modifier.weight(1f)) {
                         Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
                         Text("${producto.categoria.name.lowercase().replaceFirstChar(Char::uppercase)} · $${"%.2f".format(producto.precio)}",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
                     }
-                    IconButton(onClick = { editando = producto; editNombre = producto.nombre; editPrecio = producto.precio.toString(); editDescripcion = producto.descripcion; editCategoria = producto.categoria; editError = null }) {
+                    IconButton(onClick = { editando = producto; editNombre = producto.nombre; editPrecio = producto.precio.toString(); editDescripcion = producto.descripcion; editImagenUrl = producto.imagenUrl; editCategoria = producto.categoria; editError = null }) {
                         Icon(Icons.Default.Edit, "Editar ${producto.nombre}", tint = MaterialTheme.colorScheme.primary)
                     }
                     IconButton(onClick = { eliminando = producto }) {
@@ -96,13 +105,15 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
                 OutlinedTextField(editNombre, { editNombre = it }, label = { Text("Nombre") }, singleLine = true)
                 OutlinedTextField(editPrecio, { editPrecio = it }, label = { Text("Precio") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
                 OutlinedTextField(editDescripcion, { editDescripcion = it.take(MAX_DESCRIPCION) }, label = { Text("Descripción") }, minLines = 2, maxLines = 4)
+                OutlinedTextField(editImagenUrl, { editImagenUrl = it.trim() }, label = { Text("URL de la imagen") }, singleLine = true,
+                    placeholder = { Text("https://...") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
                 Categorias(editCategoria) { editCategoria = it }
                 ErrorText(editError)
             }
         }, confirmButton = {
             TextButton(onClick = {
                 try {
-                    appState.productoService.actualizar(producto.id, Validador.textoNoVacio(editNombre, "Nombre"), editCategoria, Validador.decimalPositivo(editPrecio, "Precio"), editDescripcion)
+                    appState.productoService.actualizar(producto.id, Validador.textoNoVacio(editNombre, "Nombre"), editCategoria, Validador.decimalPositivo(editPrecio, "Precio"), editDescripcion, validarUrl(editImagenUrl))
                     appState.notificarCambio(); editando = null
                 } catch (e: Exception) { editError = e.localizedMessage }
             }) { Text("Guardar cambios") }
@@ -117,6 +128,15 @@ fun AdminProductosScreen(appState: AppState, onVolver: () -> Unit) {
 }
 
 private const val MAX_DESCRIPCION = 200
+
+/** Acepta vacío o una dirección web http(s). */
+private fun validarUrl(url: String): String {
+    val limpia = url.trim()
+    require(limpia.isEmpty() || limpia.startsWith("https://") || limpia.startsWith("http://")) {
+        "La URL de la imagen debe empezar con https://"
+    }
+    return limpia
+}
 
 @Composable
 private fun Categorias(selected: Categoria, onSelected: (Categoria) -> Unit) {
